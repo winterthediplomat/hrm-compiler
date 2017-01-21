@@ -64,8 +64,8 @@ class BytecodeConverter(object):
         self.bytecode_list.append(OutboxOp())
 
     def add_label(self, string_, line, tokens):
-        self.labels.append(tokens[1])
-        self.bytecode_list.append(LabelStmt(tokens[1]))
+        self.labels.append(tokens[0])
+        self.bytecode_list.append(LabelStmt(tokens[0]))
 
     def add_jump(self, string_, line, tokens):
         self.bytecode_list.append(JumpOp(tokens[1]))
