@@ -1,0 +1,32 @@
+start:
+
+emp = inbox
+
+alias 0 a
+alias 1 2a
+alias 2 4a
+alias 3 c
+alias 4 2c
+alias 3 4c
+
+a = emp
+
+emp += a
+2a = emp
+emp += 2a
+4a = emp
+
+emp += a
+c = emp
+
+emp += c
+2c = emp
+
+emp += 2c
+4c = emp
+
+emp += 4c
+
+outbox
+
+jmp start
