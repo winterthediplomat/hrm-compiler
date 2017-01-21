@@ -47,13 +47,21 @@ class Assembler(object):
     def convert_outbox(self, outboxObj):
         self.code.append("outbox")
 
+    def convert_label(self, labelObj):
+        self.code.append("{0}:".format(labelObj.label_name))
+
+    def convert_jump(self, jumpObj):
+        self.code.append("jmp {0}".format(jumpObj.label_name))
+
     def convert(self, bytecodeList):
         for bytecode in bytecodeList:
             typeToFunMapping = {
                 p.AliasStmt: self.convert_alias,
                 p.AssignOp: self.convert_assign,
                 p.OutboxOp: self.convert_outbox,
-                p.AddOp: self.convert_add
+                p.AddOp: self.convert_add,
+                p.LabelStmt: self.convert_label,
+                p.JumpOp: self.convert_jump
             }
 
             try:
