@@ -10,7 +10,6 @@ class Assembler(object):
         self.aliases[aliasObj.symbolic_name] = aliasObj.tile_no
 
     def convert_assign(self, assignObj):
-        print(assignObj)
         if assignObj.src == "emp":
             # copyto
             destination_tile = -1
@@ -31,6 +30,19 @@ class Assembler(object):
             else:
                 raise NotImplementedError("`copyfrom` is not implemented yet!")
 
+    def convert_add(self, addObj):
+        tile_to_add = -1
+
+        if addObj.addend in self.aliases:
+            tile_to_add = self.aliases[addObj.addend]
+        else:
+            try:
+                tile_to_add = int(addObj.addend)
+            except TypeError:
+                raise ValueError("the given tile is not an alias nor an int!", addObj)
+
+        assert tile_to_add != -1
+        self.code.append("add {0}".format(tile_to_add))
 
     def convert_outbox(self, outboxObj):
         self.code.append("outbox")
@@ -40,7 +52,8 @@ class Assembler(object):
             typeToFunMapping = {
                 p.AliasStmt: self.convert_alias,
                 p.AssignOp: self.convert_assign,
-                p.OutboxOp: self.convert_outbox
+                p.OutboxOp: self.convert_outbox,
+                p.AddOp: self.convert_add
             }
 
             try:
