@@ -1,0 +1,19 @@
+start:
+
+emp = inbox
+alias 0 b
+alias 1 2b
+alias 2 4b
+
+b = emp
+emp += b
+
+2b = emp
+emp += 2b
+
+4b = emp
+emp += 4b
+
+outbox
+jmp start
+

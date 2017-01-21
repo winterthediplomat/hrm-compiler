@@ -1,30 +1,9 @@
 from pyparsing import Word, alphanums, nums, ZeroOrMore, Group, Keyword
 from collections import namedtuple
 
-text = """
-start:
-
-emp = inbox
-alias 0 b
-alias 1 2b
-alias 2 4b
-
-b += emp
-emp += b
-
-2b = emp
-emp += 2b
-
-4b = emp
-emp += 4b
-
-outbox
-jmp start
-"""
-
 assign = Group(Word(alphanums) + "=" + Word(alphanums))
 alias = Group(Keyword("alias") + Word(nums) + Word(alphanums))
-add = Group(Word(alphanums) + "+=" + Word(alphanums))
+add = Group(Word("emp") + "+=" + Word(alphanums))
 outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
@@ -77,7 +56,7 @@ class BytecodeConverter(object):
         self.bytecode_list.append(AliasStmt(tile_no, sym_name))
 
     def add_addop(self, string_, line, tokens):
-        addend = tokens[1]
+        addend = tokens[2]
 
         self.bytecode_list.append(AddOp(addend))
 
@@ -99,7 +78,3 @@ add.setParseAction(lambda s, line, tokens: bcc.add_tokenized("add", (s, line, to
 outbox.setParseAction(lambda s, line, tokens: bcc.add_tokenized("outbox", (s, line, tokens[0])))
 label.setParseAction(lambda s, line, tokens: bcc.add_tokenized("label", (s, line, tokens[0])))
 jump.setParseAction(lambda s, line, tokens: bcc.add_tokenized("jump", (s, line, tokens[0])))
-
-########################
-print(program.parseString(text, parseAll=True))
-print(bcc.bytecode_list)
