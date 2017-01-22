@@ -7,7 +7,8 @@ add = Group(Word("emp") + "+=" + Word(alphanums))
 outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
-program_line = (assign | alias | add | outbox | label | jump)
+condjump = Group(Keyword("jez") + Word(alphanums))
+program_line = (assign | alias | add | outbox | label | jump | condjump)
 program = ZeroOrMore(program_line)
 
 AssignOp = namedtuple("AssignOp", ["src", "dst"])
@@ -16,7 +17,7 @@ AddOp = namedtuple("AddOp", ["addend"])
 OutboxOp = namedtuple("OutboxOp", [])
 LabelStmt = namedtuple("LabelStmt", ["label_name"])
 JumpOp = namedtuple("JumpOp", ["label_name"])
-
+JumpCondOp = namedtuple("JumpCondOp", ["label_name", "condition"])
 
 class BytecodeConverter(object):
     def __init__(self):
@@ -32,7 +33,8 @@ class BytecodeConverter(object):
                 "add": self.add_addop,
                 "outbox": self.add_outbox,
                 "label": self.add_label,
-                "jump": self.add_jump
+                "jump": self.add_jump,
+                "condjump": self.add_condjump
         }[tokensType](string_, line, tokens)
         return None
 
@@ -70,6 +72,9 @@ class BytecodeConverter(object):
     def add_jump(self, string_, line, tokens):
         self.bytecode_list.append(JumpOp(tokens[1]))
 
+    def add_condjump(self, string_, line, tokens):
+        self.bytecode_list.append(JumpCondOp(tokens[1], tokens[0]))
+
 bcc = BytecodeConverter()
 
 assign.setParseAction(lambda s, line, tokens: bcc.add_tokenized("assign", (s, line, tokens[0])))
@@ -78,3 +83,4 @@ add.setParseAction(lambda s, line, tokens: bcc.add_tokenized("add", (s, line, to
 outbox.setParseAction(lambda s, line, tokens: bcc.add_tokenized("outbox", (s, line, tokens[0])))
 label.setParseAction(lambda s, line, tokens: bcc.add_tokenized("label", (s, line, tokens[0])))
 jump.setParseAction(lambda s, line, tokens: bcc.add_tokenized("jump", (s, line, tokens[0])))
+condjump.setParseAction(lambda s, line, tokens: bcc.add_tokenized("condjump", (s, line, tokens[0])))

@@ -53,6 +53,11 @@ class Assembler(object):
     def convert_jump(self, jumpObj):
         self.code.append("jmp {0}".format(jumpObj.label_name))
 
+    def convert_condjump(self, condjumpObj):
+        self.code.append("{cond} {label}".format(
+            cond=condjumpObj.condition,
+            label=condjumpObj.label_name))
+
     def convert(self, bytecodeList):
         for bytecode in bytecodeList:
             typeToFunMapping = {
@@ -61,7 +66,8 @@ class Assembler(object):
                 p.OutboxOp: self.convert_outbox,
                 p.AddOp: self.convert_add,
                 p.LabelStmt: self.convert_label,
-                p.JumpOp: self.convert_jump
+                p.JumpOp: self.convert_jump,
+                p.JumpCondOp: self.convert_condjump
             }
 
             try:
