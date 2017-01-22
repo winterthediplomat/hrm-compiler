@@ -1,0 +1,5 @@
+start:
+emp = inbox
+jez start
+outbox
+jmp start

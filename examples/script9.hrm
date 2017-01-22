@@ -1,0 +1,7 @@
+start:
+emp = inbox
+jez sendtooutbox
+jmp start
+sendtooutbox:
+outbox
+jmp start
