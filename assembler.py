@@ -28,7 +28,21 @@ class Assembler(object):
             if assignObj.src == "inbox":
                 self.code.append("inbox")
             else:
-                raise NotImplementedError("`copyfrom` is not implemented yet!")
+                # raise NotImplementedError("`copyfrom` is not implemented yet!")
+                self._handle_copyfrom(assignObj)
+
+    def _handle_copyfrom(self, assignObj):
+        source_tile = -1
+
+        if assignObj.src in self.aliases:
+            source_tile = self.aliases[assignObj.src]
+        else:
+            try:
+                source_tile = int(assignObj.src)
+            except TypeError:
+                    raise ValueError("the given tile ({0}) is not an alias nor an int!".format(assignObj.src))
+
+        self.code.append("copyfrom {0}".format(source_tile))
 
     def convert_add(self, addObj):
         tile_to_add = -1
@@ -43,6 +57,20 @@ class Assembler(object):
 
         assert tile_to_add != -1
         self.code.append("add {0}".format(tile_to_add))
+
+    def convert_sub(self, subObj):
+        tile_to_sub = -1
+
+        if subObj.subtraend in self.aliases:
+            tile_to_sub = self.aliases[subObj.subtraend]
+        else:
+            try:
+                tile_to_sub = int(subObj.subtraend)
+            except TypeError:
+                raise ValueError("the given tile is not an alias nor an int!", subObj)
+
+        assert tile_to_sub != -1
+        self.code.append("sub {0}".format(tile_to_sub))
 
     def convert_outbox(self, outboxObj):
         self.code.append("outbox")
@@ -65,6 +93,7 @@ class Assembler(object):
                 p.AssignOp: self.convert_assign,
                 p.OutboxOp: self.convert_outbox,
                 p.AddOp: self.convert_add,
+                p.SubOp: self.convert_sub,
                 p.LabelStmt: self.convert_label,
                 p.JumpOp: self.convert_jump,
                 p.JumpCondOp: self.convert_condjump
