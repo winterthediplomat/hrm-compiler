@@ -4,16 +4,18 @@ from collections import namedtuple
 assign = Group(Word(alphanums) + "=" + Word(alphanums))
 alias = Group(Keyword("alias") + Word(nums) + Word(alphanums))
 add = Group(Word("emp") + "+=" + Word(alphanums))
+sub = Group(Word("emp") + "-=" + Word(alphanums))
 outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
 condjump = Group(Keyword("jez") + Word(alphanums))
-program_line = (assign | alias | add | outbox | label | jump | condjump)
+program_line = (assign | alias | add | sub | outbox | label | jump | condjump)
 program = ZeroOrMore(program_line)
 
 AssignOp = namedtuple("AssignOp", ["src", "dst"])
 AliasStmt = namedtuple("AliasStmt", ["tile_no", "symbolic_name"])
 AddOp = namedtuple("AddOp", ["addend"])
+SubOp = namedtuple("SubOp", ["subtraend"])
 OutboxOp = namedtuple("OutboxOp", [])
 LabelStmt = namedtuple("LabelStmt", ["label_name"])
 JumpOp = namedtuple("JumpOp", ["label_name"])
@@ -31,6 +33,7 @@ class BytecodeConverter(object):
                 "assign": self.add_assign,
                 "alias": self.add_alias,
                 "add": self.add_addop,
+                "sub": self.add_subop,
                 "outbox": self.add_outbox,
                 "label": self.add_label,
                 "jump": self.add_jump,
@@ -62,6 +65,10 @@ class BytecodeConverter(object):
 
         self.bytecode_list.append(AddOp(addend))
 
+    def add_subop(self, string_, line, tokens):
+        subtraend = tokens[2]
+        self.bytecode_list.append(SubOp(subtraend))
+
     def add_outbox(self, string_, line, tokens):
         self.bytecode_list.append(OutboxOp())
 
@@ -80,6 +87,7 @@ bcc = BytecodeConverter()
 assign.setParseAction(lambda s, line, tokens: bcc.add_tokenized("assign", (s, line, tokens[0])))
 alias.setParseAction(lambda s, line, tokens: bcc.add_tokenized("alias", (s, line, tokens[0])))
 add.setParseAction(lambda s, line, tokens: bcc.add_tokenized("add", (s, line, tokens[0])))
+sub.setParseAction(lambda s, line, tokens: bcc.add_tokenized("sub", (s, line, tokens[0])))
 outbox.setParseAction(lambda s, line, tokens: bcc.add_tokenized("outbox", (s, line, tokens[0])))
 label.setParseAction(lambda s, line, tokens: bcc.add_tokenized("label", (s, line, tokens[0])))
 jump.setParseAction(lambda s, line, tokens: bcc.add_tokenized("jump", (s, line, tokens[0])))

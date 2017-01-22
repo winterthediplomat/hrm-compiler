@@ -1,0 +1,19 @@
+start:
+
+alias 0 tmp
+alias 1 tmp2
+
+emp = inbox
+tmp = emp
+
+emp = inbox
+tmp2 = emp
+
+emp -= tmp
+outbox
+
+emp = tmp
+emp -= tmp2
+outbox
+
+jmp start
