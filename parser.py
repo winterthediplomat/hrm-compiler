@@ -1,4 +1,4 @@
-from pyparsing import Word, alphanums, nums, ZeroOrMore, Group, Keyword
+from pyparsing import Word, alphanums, nums, ZeroOrMore, Group, Keyword, pythonStyleComment
 from collections import namedtuple
 
 assign = Group(Word(alphanums) + "=" + Word(alphanums))
@@ -9,7 +9,7 @@ outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
 condjump = Group(Keyword("jez") + Word(alphanums))
-program_line = (assign | alias | add | sub | outbox | label | jump | condjump)
+program_line = (assign | alias | add | sub | outbox | label | jump | condjump | pythonStyleComment)
 program = ZeroOrMore(program_line)
 
 AssignOp = namedtuple("AssignOp", ["src", "dst"])
