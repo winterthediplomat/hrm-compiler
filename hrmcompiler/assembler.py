@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import parser as p
+import hrmcompiler.parser as p
 
 class Assembler(object):
     def __init__(self):
