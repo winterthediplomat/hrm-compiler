@@ -12,12 +12,18 @@ I hate pseudo-assembly.
 virtualenv .hrm
 source .hrm/bin/activate
 
-pip install pyparsing
+pip install pyparsing pytest
+pip install .
 ```
 
 ## Usage
 
-`python main.py <script>`
+`hrmc <script>`
+
+## Run tests
+
+Use `pytest`, it will find all the tests. I started writing it without tests,
+but now it'll be more test-driven.
 
 ## Examples
 
