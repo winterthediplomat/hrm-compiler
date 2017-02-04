@@ -10,3 +10,13 @@ def check_multiple_labels(program_ast):
 
         label_names_set.add(label.label_name)
     return True
+
+def check_undefined_label_jump(program_ast):
+    ast_labels = set(ast_item.label_name for ast_item in program_ast if type(ast_item) == parser.LabelStmt)
+    jmp_labels = set(ast_item.label_name for ast_item in program_ast if type(ast_item) in [parser.JumpOp, parser.JumpCondOp])
+
+    undefined_labels = jmp_labels.difference(ast_labels)
+    if undefined_labels:
+        raise ValueError("the following labels are referenced by `jmp` operations, but don't exist: {0}".format(list(undefined_labels)))
+
+    return True

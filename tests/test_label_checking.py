@@ -12,6 +12,7 @@ def test_singlelabel():
         ast = parser.parse_it(f)
 
     assert semantic_check.check_multiple_labels(ast)
+    assert semantic_check.check_undefined_label_jump(ast)
 
 def test_double_defined_label():
     code = """
@@ -25,13 +26,24 @@ def test_double_defined_label():
         with pytest.raises(ValueError):
             semantic_check.check_multiple_labels(ast)
 
+        assert semantic_check.check_undefined_label_jump(ast)
 
-@pytest.mark.skip(reason="to be implemented")
 def test_jump_to_undefined_label():
     code = """
     notwhatyouwant:
     jmp whatiwant
     """
     with StringIO(code) as f:
+        ast = parser.parse_it(f)
         with pytest.raises(ValueError):
-            parser.parse_it(f)
+            semantic_check.check_undefined_label_jump(ast)
+
+def test_jump_to_undefined_label_condjmp():
+    code = """
+    notwhatyouwant:
+    jez whatiwant
+    """
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+        with pytest.raises(ValueError):
+            semantic_check.check_undefined_label_jump(ast)
