@@ -1,0 +1,8 @@
+alias 2 tmp
+
+start:
+emp = inbox
+tmp = emp
+emp += tmp
+outbox
+jmp nonstart
