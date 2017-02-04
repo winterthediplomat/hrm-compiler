@@ -3,6 +3,7 @@
 # ################################
 import hrmcompiler.parser as p
 import hrmcompiler.assembler as a
+import hrmcompiler.semantic_check as checker
 
 def main(args):
     with open(args.fname) as src:
@@ -11,6 +12,7 @@ def main(args):
         result_ast = p.parse_it(src)
         print(result_ast)
 
+        checker.perform_label_checks(result_ast)
 
         assembler = a.Assembler()
         assembler.convert(result_ast)

@@ -20,3 +20,7 @@ def check_undefined_label_jump(program_ast):
         raise ValueError("the following labels are referenced by `jmp` operations, but don't exist: {0}".format(list(undefined_labels)))
 
     return True
+
+def perform_label_checks(program_ast):
+    check_multiple_labels(program_ast)
+    check_undefined_label_jump(program_ast)
