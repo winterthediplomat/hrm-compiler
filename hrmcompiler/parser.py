@@ -14,7 +14,7 @@ program_line = (assign | alias | add | sub | outbox | label | jump | condjump | 
 condition = Keyword("ez")
 if_block = Group(Suppress(Keyword("if")) + condition + Suppress(Keyword("then"))
            + Group(ZeroOrMore(program_line))
-#           + Optional(Keyword("else") +  ZeroOrMore(program_line))
+           + Optional(Suppress(Keyword("else")) + Group(ZeroOrMore(program_line)))
            + Suppress(Keyword("endif")))
 
 program = ZeroOrMore(program_line | if_block)
@@ -28,7 +28,7 @@ LabelStmt = namedtuple("LabelStmt", ["label_name"])
 JumpOp = namedtuple("JumpOp", ["label_name"])
 JumpCondOp = namedtuple("JumpCondOp", ["label_name", "condition"])
 
-IfOp = namedtuple("IfOp", ["condition", "true_branch"])
+IfOp = namedtuple("IfOp", ["condition", "true_branch", "false_branch"])
 
 class BytecodeConverter(object):
     def __init__(self):
@@ -92,7 +92,11 @@ class BytecodeConverter(object):
         return (JumpCondOp(tokens[1], tokens[0]))
 
     def add_if(self, string_, line, tokens):
-        return IfOp(tokens[0], list(tokens[1]))
+        try:
+            false_branch = list(tokens[2])
+        except IndexError:
+            false_branch = []
+        return IfOp(tokens[0], list(tokens[1]), false_branch)
 
 def parse_it(fileObj):
     bcc = BytecodeConverter()

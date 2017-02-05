@@ -39,3 +39,34 @@ def test_if_multiple_ops():
             parser.OutboxOp(),
             parser.JumpOp("start")
     ]
+
+def test_if_noelse():
+    code = """
+    if ez then
+        outbox
+    endif
+    """
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    if_op = ast[0]
+    assert if_op.false_branch == []
+
+def test_if_doublebranch():
+    code = """
+    start:
+    emp = inbox
+    if ez then
+        outbox
+    else
+        jmp start
+    endif
+    """
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    if_op = ast[2]
+    assert type(if_op) == parser.IfOp
+    assert if_op.condition == "ez"
+    assert if_op.true_branch == [parser.OutboxOp()]
+    assert if_op.false_branch == [parser.JumpOp("start")]
