@@ -1,4 +1,4 @@
-from pyparsing import Word, alphanums, nums, ZeroOrMore, Group, Keyword, pythonStyleComment, Suppress
+from pyparsing import Word, alphanums, nums, ZeroOrMore, Group, Keyword, pythonStyleComment, Suppress, Optional
 from collections import namedtuple
 
 assign = Group(Word(alphanums) + "=" + Word(alphanums))
@@ -10,7 +10,14 @@ label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
 condjump = Group(Keyword("jez") + Word(alphanums))
 program_line = (assign | alias | add | sub | outbox | label | jump | condjump | Suppress(pythonStyleComment))
-program = ZeroOrMore(program_line)
+
+condition = Keyword("ez")
+if_block = Group(Suppress(Keyword("if")) + condition + Suppress(Keyword("then"))
+           + Group(ZeroOrMore(program_line))
+           + Optional(Suppress(Keyword("else")) + Group(ZeroOrMore(program_line)))
+           + Suppress(Keyword("endif")))
+
+program = ZeroOrMore(program_line | if_block)
 
 AssignOp = namedtuple("AssignOp", ["src", "dst"])
 AliasStmt = namedtuple("AliasStmt", ["tile_no", "symbolic_name"])
@@ -20,6 +27,8 @@ OutboxOp = namedtuple("OutboxOp", [])
 LabelStmt = namedtuple("LabelStmt", ["label_name"])
 JumpOp = namedtuple("JumpOp", ["label_name"])
 JumpCondOp = namedtuple("JumpCondOp", ["label_name", "condition"])
+
+IfOp = namedtuple("IfOp", ["condition", "true_branch", "false_branch"])
 
 class BytecodeConverter(object):
     def __init__(self):
@@ -37,7 +46,8 @@ class BytecodeConverter(object):
                 "outbox": self.add_outbox,
                 "label": self.add_label,
                 "jump": self.add_jump,
-                "condjump": self.add_condjump
+                "condjump": self.add_condjump,
+                "if": self.add_if
         }[tokensType](string_, line, tokens)
 
     def add_assign(self, string_, line, tokens):
@@ -81,6 +91,12 @@ class BytecodeConverter(object):
     def add_condjump(self, string_, line, tokens):
         return (JumpCondOp(tokens[1], tokens[0]))
 
+    def add_if(self, string_, line, tokens):
+        try:
+            false_branch = list(tokens[2])
+        except IndexError:
+            false_branch = []
+        return IfOp(tokens[0], list(tokens[1]), false_branch)
 
 def parse_it(fileObj):
     bcc = BytecodeConverter()
@@ -93,5 +109,6 @@ def parse_it(fileObj):
     label.setParseAction(lambda s, line, tokens: bcc.add_tokenized("label", (s, line, tokens[0])))
     jump.setParseAction(lambda s, line, tokens: bcc.add_tokenized("jump", (s, line, tokens[0])))
     condjump.setParseAction(lambda s, line, tokens: bcc.add_tokenized("condjump", (s, line, tokens[0])))
+    if_block.setParseAction(lambda s, line, tokens: bcc.add_tokenized("if", (s, line, tokens[0])))
 
     return program.parseFile(fileObj, parseAll=True)

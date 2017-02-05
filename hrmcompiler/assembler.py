@@ -5,6 +5,7 @@ class Assembler(object):
     def __init__(self):
         self.code = []
         self.aliases = dict()
+        self._gen_label_cnt = 1
 
     def convert_alias(self, aliasObj):
         self.aliases[aliasObj.symbolic_name] = aliasObj.tile_no
@@ -86,6 +87,33 @@ class Assembler(object):
             cond=condjumpObj.condition,
             label=condjumpObj.label_name))
 
+    def convert_if(self, ifObj):
+        def create_adhoc_assembler():
+            new_assembler = Assembler()
+            new_assembler.aliases = self.aliases
+            new_assembler._gen_label_cnt = self._gen_label_cnt
+            return new_assembler
+
+        label_cnt = self._gen_label_cnt
+        self._gen_label_cnt += 1
+
+        true_branch_assembler = create_adhoc_assembler()
+        true_branch_assembler.convert(ifObj.true_branch)
+        self._gen_label_cnt = true_branch_assembler._gen_label_cnt
+
+        false_branch_assembler = create_adhoc_assembler()
+        false_branch_assembler.convert(ifObj.false_branch)
+        self._gen_label_cnt = false_branch_assembler._gen_label_cnt
+
+        self.convert_condjump(p.JumpCondOp("_hrm_"+str(label_cnt), "j"+ifObj.condition))
+        for false_branch_codeline in false_branch_assembler.code:
+            self.code.append(false_branch_codeline)
+        self.convert_jump(p.JumpOp("_hrm_endif_"+str(label_cnt)))
+        self.convert_label(p.LabelStmt("_hrm_"+str(label_cnt)))
+        for true_branch_codeline in true_branch_assembler.code:
+            self.code.append(true_branch_codeline)
+        self.convert_label(p.LabelStmt("_hrm_endif_"+str(label_cnt)))
+
     def convert(self, bytecodeList):
         for bytecode in bytecodeList:
             typeToFunMapping = {
@@ -96,7 +124,8 @@ class Assembler(object):
                 p.SubOp: self.convert_sub,
                 p.LabelStmt: self.convert_label,
                 p.JumpOp: self.convert_jump,
-                p.JumpCondOp: self.convert_condjump
+                p.JumpCondOp: self.convert_condjump,
+                p.IfOp: self.convert_if
             }
 
             try:
