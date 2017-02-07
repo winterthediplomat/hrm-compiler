@@ -1,4 +1,5 @@
 from pyparsing import Word, alphanums, nums, ZeroOrMore, Group, Keyword, pythonStyleComment, Suppress, Optional
+from pyparsing import Forward
 from collections import namedtuple
 
 assign = Group(Word(alphanums) + "=" + Word(alphanums))
@@ -9,15 +10,18 @@ outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
 condjump = Group(Keyword("jez") + Word(alphanums))
-program_line = (assign | alias | add | sub | outbox | label | jump | condjump | Suppress(pythonStyleComment))
 
-condition = Keyword("ez") | Keyword("nz")
+program_line = Forward()
+_program_line = (assign | alias | add | sub | outbox | label | jump | condjump | Suppress(pythonStyleComment))
+
+condition = (Keyword("ez") | Keyword("nz"))
 if_block = Group(Suppress(Keyword("if")) + condition + Suppress(Keyword("then"))
            + Group(ZeroOrMore(program_line))
            + Optional(Suppress(Keyword("else")) + Group(ZeroOrMore(program_line)))
            + Suppress(Keyword("endif")))
 
-program = ZeroOrMore(program_line | if_block)
+program_line << (if_block|_program_line)
+program = ZeroOrMore(program_line)
 
 AssignOp = namedtuple("AssignOp", ["src", "dst"])
 AliasStmt = namedtuple("AliasStmt", ["tile_no", "symbolic_name"])

@@ -1,0 +1,8 @@
+# every non-zero item from INBOX must be put inside OUTBOX!
+
+start:
+emp = inbox
+if nz then
+	outbox
+endif
+jmp start

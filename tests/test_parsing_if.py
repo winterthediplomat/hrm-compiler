@@ -71,6 +71,23 @@ def test_if_doublebranch():
     assert if_op.true_branch == [parser.OutboxOp()]
     assert if_op.false_branch == [parser.JumpOp("start")]
 
+def test_if_nested():
+    code = """
+    if ez then
+        if nz then
+        endif
+    endif
+    """
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    if_op = ast[0]
+    nested_if = if_op.true_branch[0]
+    assert if_op.condition == "ez"
+    assert nested_if.condition == "nz"
+    assert nested_if.true_branch == nested_if.false_branch
+    assert if_op.false_branch == []
+
 #########################################
 
 def test_if_nz():
