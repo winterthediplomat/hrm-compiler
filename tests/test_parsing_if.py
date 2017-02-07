@@ -70,3 +70,18 @@ def test_if_doublebranch():
     assert if_op.condition == "ez"
     assert if_op.true_branch == [parser.OutboxOp()]
     assert if_op.false_branch == [parser.JumpOp("start")]
+
+#########################################
+
+def test_if_nz():
+    code = """
+    if nz then
+        outbox
+    endif
+    """
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    if_op = ast[0]
+    assert type(if_op) == parser.IfOp
+    assert if_op.condition == "nz"
