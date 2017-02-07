@@ -1,0 +1,41 @@
+# if the current item from INBOX is zero
+# and the next one from INBOX is non-zero,
+# put the current one in OUTBOX
+#
+# foreach i : INBOX[i-1] == 0 and INBOX[i] != 0 --> outbox(INBOX[i-1])
+#							else --> *puff*
+
+alias 1 tmp
+alias 2 nexttmp
+
+# read the 0th item
+emp = inbox
+
+# save the 0th item
+tmp = emp
+
+cycle:
+# read the i-th item, with i >= 1
+emp = inbox
+# save the i-th item
+nexttmp = emp
+
+emp = tmp
+if ez then
+	# INBOX[i-1] == 0
+	emp = nexttmp
+
+	if nz then
+		# INBOX[i] != 0
+
+		# outbox INBOX[i-1]
+		emp = tmp
+		outbox
+	endif
+endif
+
+# copy INBOX[i] to INBOX[i-1] spot
+emp = nexttmp
+tmp = emp
+
+jmp cycle

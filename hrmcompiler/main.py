@@ -4,6 +4,7 @@
 import hrmcompiler.parser as p
 import hrmcompiler.assembler as a
 import hrmcompiler.semantic_check as checker
+import hrmcompiler.conversion as conversion
 
 def main(args):
     with open(args.fname) as src:
@@ -13,6 +14,8 @@ def main(args):
         print(result_ast)
 
         checker.perform_label_checks(result_ast)
+
+        result_ast = conversion.convert_ifnz_to_ifez(result_ast)
 
         assembler = a.Assembler()
         assembler.convert(result_ast)
