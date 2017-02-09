@@ -1,0 +1,17 @@
+# Absolute Positivity
+# f(INBOX) = abs(INBOX)
+
+alias 0 tmp
+
+start:
+emp = inbox
+if neg then
+	tmp = eng
+  # with k = -a
+	# k -k -k = 0 -k = -k = {k=-a} a
+	emp -= tmp
+	emp -= tmp
+endif
+outbox
+
+jmp start
