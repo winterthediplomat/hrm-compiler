@@ -102,3 +102,18 @@ def test_if_nz():
     if_op = ast[0]
     assert type(if_op) == parser.IfOp
     assert if_op.condition == "nz"
+
+#########################################
+
+def test_if_neg():
+    code = """
+    if neg then
+        outbox
+    endif
+    """
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    if_op = ast[0]
+    assert type(if_op) == parser.IfOp
+    assert if_op.condition == "neg"

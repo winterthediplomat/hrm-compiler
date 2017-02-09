@@ -1,0 +1,23 @@
+# maximization room
+
+alias 0 tmp
+
+start:
+# grab the first from INBOX
+emp = inbox
+# copy it to storage
+tmp = emp
+# grab the second item
+emp = inbox
+
+emp -= tmp
+
+if neg then
+		emp = tmp
+else
+		emp += tmp
+endif
+
+outbox
+
+jmp start
