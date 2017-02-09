@@ -14,7 +14,7 @@ condjump = Group(Keyword("jez") + Word(alphanums))
 program_line = Forward()
 _program_line = (assign | alias | add | sub | outbox | label | jump | condjump | Suppress(pythonStyleComment))
 
-condition = (Keyword("ez") | Keyword("nz"))
+condition = (Keyword("ez") | Keyword("nz") | Keyword("neg"))
 if_block = Group(Suppress(Keyword("if")) + condition + Suppress(Keyword("then"))
            + Group(ZeroOrMore(program_line))
            + Optional(Suppress(Keyword("else")) + Group(ZeroOrMore(program_line)))
