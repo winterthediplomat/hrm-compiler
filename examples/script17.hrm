@@ -1,0 +1,35 @@
+# implement XOR
+
+# constants
+alias 4 FALSE
+alias 5 TRUE
+
+# temporary storage
+alias 0 first
+alias 1 second
+
+# code
+
+start:
+emp = inbox
+
+if neg then
+  emp = inbox
+	
+	if neg then
+		emp = FALSE
+	else
+		emp = TRUE
+	endif
+else
+	emp = inbox
+
+	if neg then
+		emp = TRUE
+	else
+		emp = FALSE
+	endif
+endif
+
+outbox
+jmp start
