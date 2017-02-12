@@ -87,6 +87,19 @@ class Assembler(object):
             cond=condjumpObj.condition,
             label=condjumpObj.label_name))
 
+    def _alias_to_number(self, candidate_alias):
+        if candidate_alias in self.aliases:
+            return self.aliases[candidate_alias]
+        else:
+            try:
+                return int(candidate_alias)
+            except TypeError:
+                raise ValueError("the given tile is not an alias nor an int!", candidate_alias)
+
+    def convert_incrop(self, incrObj):
+        tile = self._alias_to_number(incrObj.label_name)
+        self.code.append("incr {tile}".format(tile=tile))
+
     def convert_if(self, ifObj):
         def create_adhoc_assembler():
             new_assembler = Assembler()
@@ -125,6 +138,7 @@ class Assembler(object):
                 p.LabelStmt: self.convert_label,
                 p.JumpOp: self.convert_jump,
                 p.JumpCondOp: self.convert_condjump,
+                p.IncrOp: self.convert_incrop,
                 p.IfOp: self.convert_if
             }
 
