@@ -10,9 +10,10 @@ outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
 condjump = Group(Keyword("jez") + Word(alphanums))
+incr = Group(Suppress(Keyword("incr")) + Word(alphanums))
 
 program_line = Forward()
-_program_line = (assign | alias | add | sub | outbox | label | jump | condjump | Suppress(pythonStyleComment))
+_program_line = (assign | alias | add | sub | outbox | label | jump | condjump | Suppress(pythonStyleComment) | incr)
 
 condition = (Keyword("ez") | Keyword("nz") | Keyword("neg"))
 if_block = Group(Suppress(Keyword("if")) + condition + Suppress(Keyword("then"))
@@ -31,6 +32,7 @@ OutboxOp = namedtuple("OutboxOp", [])
 LabelStmt = namedtuple("LabelStmt", ["label_name"])
 JumpOp = namedtuple("JumpOp", ["label_name"])
 JumpCondOp = namedtuple("JumpCondOp", ["label_name", "condition"])
+IncrOp = namedtuple("IncrOp", ["label_name"])
 
 IfOp = namedtuple("IfOp", ["condition", "true_branch", "false_branch"])
 
@@ -51,6 +53,7 @@ class BytecodeConverter(object):
                 "label": self.add_label,
                 "jump": self.add_jump,
                 "condjump": self.add_condjump,
+                "incr": self.add_incr,
                 "if": self.add_if
         }[tokensType](string_, line, tokens)
 
@@ -95,6 +98,9 @@ class BytecodeConverter(object):
     def add_condjump(self, string_, line, tokens):
         return (JumpCondOp(tokens[1], tokens[0]))
 
+    def add_incr(self, string_, line, tokens):
+        return IncrOp(tokens[0])
+
     def add_if(self, string_, line, tokens):
         try:
             false_branch = list(tokens[2])
@@ -113,6 +119,7 @@ def parse_it(fileObj):
     label.setParseAction(lambda s, line, tokens: bcc.add_tokenized("label", (s, line, tokens[0])))
     jump.setParseAction(lambda s, line, tokens: bcc.add_tokenized("jump", (s, line, tokens[0])))
     condjump.setParseAction(lambda s, line, tokens: bcc.add_tokenized("condjump", (s, line, tokens[0])))
+    incr.setParseAction(lambda s, line, tokens: bcc.add_tokenized("incr", (s, line, tokens[0])))
     if_block.setParseAction(lambda s, line, tokens: bcc.add_tokenized("if", (s, line, tokens[0])))
 
     return program.parseFile(fileObj, parseAll=True)

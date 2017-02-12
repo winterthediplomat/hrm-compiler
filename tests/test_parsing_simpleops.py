@@ -81,3 +81,23 @@ def test_sub_from_nonEmp():
     with StringIO(code) as f:
         with pytest.raises(pyparsing.ParseException):
             parser.parse_it(f)
+
+
+#######################################################
+
+def test_incr_withlabel():
+    code = "incr mylabel"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.IncrOp
+    assert ast[0].label_name == "mylabel"
+
+def test_incr_withnumber():
+    code = "incr 0"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.IncrOp
+    assert ast[0].label_name == "0"
+

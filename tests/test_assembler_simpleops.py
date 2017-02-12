@@ -44,3 +44,14 @@ def test_outbox():
     converter.convert(code)
 
     assert converter.code == ["outbox"]
+
+##########################################
+
+def test_incr_withnumber():
+    code = [parser.IncrOp("0")]
+    assert get_assembly(code) == ["incr 0"]
+
+def test_incr_withlabel():
+    code = [parser.AliasStmt("0", "mylabel"), parser.IncrOp("mylabel")]
+    assert get_assembly(code) == ["incr 0"]
+
