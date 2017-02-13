@@ -101,3 +101,19 @@ def test_incr_withnumber():
     assert type(ast[0]) == parser.IncrOp
     assert ast[0].label_name == "0"
 
+def test_decr_withlabel():
+    code = "decr mylabel"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.DecrOp
+    assert ast[0].label_name == "mylabel"
+
+def test_decr_withnumber():
+    code = "decr 0"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.DecrOp
+    assert ast[0].label_name == "0"
+

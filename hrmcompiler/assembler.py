@@ -61,6 +61,10 @@ class Assembler(object):
         tile = self._alias_to_tile(incrObj.label_name)
         self.code.append("incr {tile}".format(tile=tile))
 
+    def convert_decrop(self, decrObj):
+        tile = self._alias_to_tile(decrObj.label_name)
+        self.code.append("decr {tile}".format(tile=tile))
+
     def convert_if(self, ifObj):
         def create_adhoc_assembler():
             new_assembler = Assembler()
@@ -100,6 +104,7 @@ class Assembler(object):
                 p.JumpOp: self.convert_jump,
                 p.JumpCondOp: self.convert_condjump,
                 p.IncrOp: self.convert_incrop,
+                p.DecrOp: self.convert_decrop,
                 p.IfOp: self.convert_if
             }
 
