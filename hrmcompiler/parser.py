@@ -9,7 +9,7 @@ sub = Group(Word("emp") + "-=" + Word(alphanums))
 outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
-condjump = Group(Keyword("jez") + Word(alphanums))
+condjump = Group((Keyword("jez")|Keyword("jneg")) + Word(alphanums))
 incr = Group(Suppress(Keyword("incr")) + Word(alphanums))
 decr = Group(Suppress(Keyword("decr")) + Word(alphanums))
 
