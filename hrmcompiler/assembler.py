@@ -13,64 +13,25 @@ class Assembler(object):
     def convert_assign(self, assignObj):
         if assignObj.src == "emp":
             # copyto
-            destination_tile = -1
-
-            if assignObj.dst in self.aliases:
-                destination_tile = self.aliases[assignObj.dst]
-            else:
-                try:
-                    destination_tile = int(assignObj.dst)
-                except TypeError:
-                    raise ValueError("the given tile ({0}) is not an alias nor an int!".format(assignObj.dst))
-
+            destination_tile = self._alias_to_tile(assignObj.dst)
             self.code.append("copyto {0}".format(destination_tile))
 
         if assignObj.dst == "emp":
             if assignObj.src == "inbox":
                 self.code.append("inbox")
             else:
-                # raise NotImplementedError("`copyfrom` is not implemented yet!")
                 self._handle_copyfrom(assignObj)
 
     def _handle_copyfrom(self, assignObj):
-        source_tile = -1
-
-        if assignObj.src in self.aliases:
-            source_tile = self.aliases[assignObj.src]
-        else:
-            try:
-                source_tile = int(assignObj.src)
-            except TypeError:
-                    raise ValueError("the given tile ({0}) is not an alias nor an int!".format(assignObj.src))
-
+        source_tile = self._alias_to_tile(assignObj.src)
         self.code.append("copyfrom {0}".format(source_tile))
 
     def convert_add(self, addObj):
-        tile_to_add = -1
-
-        if addObj.addend in self.aliases:
-            tile_to_add = self.aliases[addObj.addend]
-        else:
-            try:
-                tile_to_add = int(addObj.addend)
-            except TypeError:
-                raise ValueError("the given tile is not an alias nor an int!", addObj)
-
-        assert tile_to_add != -1
+        tile_to_add = self._alias_to_tile(addObj.addend)
         self.code.append("add {0}".format(tile_to_add))
 
     def convert_sub(self, subObj):
-        tile_to_sub = -1
-
-        if subObj.subtraend in self.aliases:
-            tile_to_sub = self.aliases[subObj.subtraend]
-        else:
-            try:
-                tile_to_sub = int(subObj.subtraend)
-            except TypeError:
-                raise ValueError("the given tile is not an alias nor an int!", subObj)
-
-        assert tile_to_sub != -1
+        tile_to_sub = self._alias_to_tile(subObj.subtraend)
         self.code.append("sub {0}".format(tile_to_sub))
 
     def convert_outbox(self, outboxObj):
@@ -86,6 +47,23 @@ class Assembler(object):
         self.code.append("{cond} {label}".format(
             cond=condjumpObj.condition,
             label=condjumpObj.label_name))
+
+    def _alias_to_tile(self, candidate_alias):
+        if candidate_alias in self.aliases:
+            return self.aliases[candidate_alias]
+        else:
+            try:
+                return int(candidate_alias)
+            except TypeError:
+                raise ValueError("the given tile is not an alias nor an int!", candidate_alias)
+
+    def convert_incrop(self, incrObj):
+        tile = self._alias_to_tile(incrObj.label_name)
+        self.code.append("incr {tile}".format(tile=tile))
+
+    def convert_decrop(self, decrObj):
+        tile = self._alias_to_tile(decrObj.label_name)
+        self.code.append("decr {tile}".format(tile=tile))
 
     def convert_if(self, ifObj):
         def create_adhoc_assembler():
@@ -125,6 +103,8 @@ class Assembler(object):
                 p.LabelStmt: self.convert_label,
                 p.JumpOp: self.convert_jump,
                 p.JumpCondOp: self.convert_condjump,
+                p.IncrOp: self.convert_incrop,
+                p.DecrOp: self.convert_decrop,
                 p.IfOp: self.convert_if
             }
 

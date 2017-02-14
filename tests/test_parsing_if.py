@@ -117,3 +117,12 @@ def test_if_neg():
     if_op = ast[0]
     assert type(if_op) == parser.IfOp
     assert if_op.condition == "neg"
+
+#######################################
+
+def test_if_incr():
+    code = """
+    if ez then
+        incr 0
+    endif
+    """

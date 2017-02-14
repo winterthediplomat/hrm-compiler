@@ -1,0 +1,26 @@
+# Countdown
+
+# this is a really barebone/close to target language example:
+# a more natural way would generate too many instructions.
+
+alias 0 tmp
+
+emp = inbox
+tmp = emp
+
+nexttime:
+jez readnext
+
+tooutbox:
+outbox
+emp = tmp
+jneg increaseit
+decr tmp
+jmp nexttime
+increaseit:
+incr tmp
+jmp nexttime
+
+readnext:
+outbox
+jmp nexttime
