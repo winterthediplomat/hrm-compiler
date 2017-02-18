@@ -1,0 +1,32 @@
+alias 0 first
+alias 1 second
+alias 2 tmp
+alias 9 zero
+
+start:
+# get the first one
+emp = inbox
+first = emp
+
+# get the second one
+emp = inbox
+second = emp
+
+# initialize accumulator
+emp = zero
+tmp = emp
+
+mult:
+emp = first
+if ez then
+	emp = tmp
+	outbox
+	jmp start
+else
+	decr first
+	emp = tmp
+	emp += second
+	tmp = emp
+	jmp mult
+endif
+

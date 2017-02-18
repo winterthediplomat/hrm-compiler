@@ -1,0 +1,31 @@
+# exercise 21
+# Add together all the numbers in each string.
+# When you reach the end of a string (marked by a ZERO)
+# put your sum in the outbox.
+# Reset and repeat for each string
+
+# initial setup
+alias 5 ZERO
+
+# our aliases
+alias 0 accumulator
+
+# code
+
+reset:
+# initialize accumulator
+emp = ZERO
+accumulator = emp
+
+newnumber:
+emp = inbox
+
+if ez then
+	emp = accumulator
+	outbox
+	jmp reset
+else
+	emp += accumulator
+	accumulator = emp
+	jmp newnumber
+endif
