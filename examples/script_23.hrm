@@ -1,0 +1,31 @@
+# The Littlest Number
+# for each zero-terminated string in the inbox,
+# send to the outbox only the smallest number
+# you've seen in that string.
+# You will never be given an empty string.
+# Reset and repeat for each string.
+
+alias 0 currentmin
+
+outboxmin:
+emp = currentmin
+outbox
+
+newserie:
+emp = inbox
+currentmin = emp
+
+newnumber:
+emp = inbox
+
+# check if the string is terminated
+jez outboxmin
+
+# check if the new number is lower
+# than the current min
+emp -= currentmin
+if neg then
+	emp += currentmin
+	currentmin = emp
+endif
+jmp newnumber
