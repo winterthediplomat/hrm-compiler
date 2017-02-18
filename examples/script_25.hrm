@@ -1,0 +1,28 @@
+# Cumulative Countdown
+# For each thing in the INBOX,
+# OUTBOX the sum of itself plus all numbers down to zero.
+# for example, if INBOX is 3, OUTBOX should be 6,
+# as 1+2+3 = 6
+
+# start setup
+alias 5 ZERO
+alias 0 x
+alias 1 acc
+
+start:
+emp = inbox
+x = emp
+acc = emp
+
+cumulate:
+if ez then
+	acc = emp
+	outbox
+	jmp start
+else
+	decr x
+	emp += acc
+	acc = emp
+	emp = x
+	jmp cumulate
+endif
