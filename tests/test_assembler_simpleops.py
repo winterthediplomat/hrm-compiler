@@ -28,13 +28,55 @@ def test_copyfrom_alias():
     code = [parser.AliasStmt(3, "knownLabel"), parser.AssignOp("knownLabel", "emp")]
     assert get_assembly(code) == ["copyfrom 3"]
 
+def test_copyto_alias():
+    code = [parser.AliasStmt(3, "knownLabel"), parser.AssignOp("emp", "knownLabel")]
+    assert get_assembly(code) == ["copyto 3"]
+
 def test_copyfrom_equivalence():
     alias_ast = [parser.AliasStmt(3, "knownLabel"), parser.AssignOp("knownLabel", "emp")]
     tile_ast = [parser.AssignOp("3", "emp")]
     assert get_assembly(alias_ast) == get_assembly(tile_ast)
 
+def test_copyto_equivalence():
+    alias_ast = [parser.AliasStmt(3, "knownLabel"), parser.AssignOp("emp", "knownLabel")]
+    tile_ast = [parser.AssignOp("emp", "3")]
+    assert get_assembly(alias_ast) == get_assembly(tile_ast)
+
+def test_copyfrom_address():
+    code = [parser.AssignOp(parser.AddressOf("3"), "emp")]
+    assert get_assembly(code) == ["copyfrom [3]"]
+
+def test_copyfrom_addressof_alias():
+    code = [parser.AliasStmt(3, "knownLabel"), parser.AssignOp(parser.AddressOf("knownLabel"), "emp")]
+    assert get_assembly(code) == ["copyfrom [3]"]
+
+def test_copyto_address():
+    code = [parser.AssignOp("emp", parser.AddressOf("3"))]
+    assert get_assembly(code) == ["copyto [3]"]
+
+def test_copyto_addressof_alias():
+    code = [parser.AliasStmt(3, "knownLabel"), parser.AssignOp("emp", parser.AddressOf("knownLabel"))]
+    assert get_assembly(code) == ["copyto [3]"]
+
 def test_copyfrom_undefined_label():
     code = [parser.AssignOp("unknownLabel", "emp")]
+
+    with pytest.raises(ValueError):
+        get_assembly(code)
+
+def test_copyto_undefined_label():
+    code = [parser.AssignOp("emp", "unknownLabel")]
+    with pytest.raises(ValueError):
+        get_assembly(code)
+
+def test_copyfrom_undefined_addressof_alias():
+    code = [parser.AssignOp(parser.AddressOf("unknownLabel"), "emp")]
+
+    with pytest.raises(ValueError):
+        get_assembly(code)
+
+def test_copyto_undefined_addressof_alias():
+    code = [parser.AssignOp("emp", parser.AddressOf("unknownLabel"))]
 
     with pytest.raises(ValueError):
         get_assembly(code)

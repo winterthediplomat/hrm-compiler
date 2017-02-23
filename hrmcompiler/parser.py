@@ -3,7 +3,7 @@ from pyparsing import Forward
 from collections import namedtuple
 
 addressof = Suppress("*") + Group(Word(alphanums))
-assign = Group(Word(alphanums) + "=" + Word(alphanums))
+assign = Group((Word(alphanums) | addressof) + "=" + (Word(alphanums) | addressof))
 alias = Group(Keyword("alias") + Word(nums) + Word(alphanums))
 add = Group(Word("emp") + "+=" + (Word(alphanums) | addressof))
 sub = Group(Word("emp") + "-=" + Word(alphanums))

@@ -42,6 +42,14 @@ def test_assign_to_alias():
     assert ast[0].src == "emp"
     assert ast[0].dst == "myTile"
 
+def test_assign_to_addressof_alias():
+    code = "*myTile = emp"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].src == "emp"
+    assert ast[0].dst == parser.AddressOf("myTile")
+
 def test_assign_to_tilenumber():
     code = "3 = emp"
     with StringIO(code) as f:
@@ -49,6 +57,14 @@ def test_assign_to_tilenumber():
 
     assert ast[0].src == "emp"
     assert ast[0].dst == "3"
+
+def test_assign_to_addressof_tilenumber():
+    code = "*3 = emp"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].src == "emp"
+    assert ast[0].dst == parser.AddressOf("3")
 
 def test_assign_from_alias():
     code = "emp = myTile"
@@ -58,12 +74,28 @@ def test_assign_from_alias():
     assert ast[0].src == "myTile"
     assert ast[0].dst == "emp"
 
+def test_assign_from_addressof_alias():
+    code = "emp = *myTile"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].src == parser.AddressOf("myTile")
+    assert ast[0].dst == "emp"
+
 def test_assign_from_tile():
     code = "emp = 3"
     with StringIO(code) as f:
         ast = parser.parse_it(f)
 
     assert ast[0].src == "3"
+    assert ast[0].dst == "emp"
+
+def test_assign_from_addressof_tile():
+    code = "emp = *3"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].src == parser.AddressOf("3")
     assert ast[0].dst == "emp"
 
 #######################################################
