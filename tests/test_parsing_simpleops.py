@@ -10,7 +10,7 @@ def test_assign():
     code = "emp = inbox"
     with StringIO(code) as f:
         ast = parser.parse_it(f)
-        
+
         assert ast[0].src == "inbox"
         assert ast[0].dst == "emp"
 
@@ -59,12 +59,33 @@ def test_add():
 
         assert ast[0].addend == "test"
 
+def test_add_tilenumber():
+    code = "emp += 3"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == "3"
+
 def test_add_to_nonEmp():
     """ for now, you cannot add to something different than `emp` """
     code = "nonemp += test"
     with StringIO(code) as f:
         with pytest.raises(pyparsing.ParseException):
             ast = parser.parse_it(f)
+
+def test_add_address_of_tile():
+    code = "emp += *test"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("test")
+
+def test_add_address_of_number():
+    code = "emp += *3"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("3")
 
 #######################################################
 

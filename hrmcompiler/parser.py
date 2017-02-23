@@ -2,9 +2,10 @@ from pyparsing import Word, alphanums, nums, ZeroOrMore, Group, Keyword, pythonS
 from pyparsing import Forward
 from collections import namedtuple
 
+addressof = Suppress("*") + Group(Word(alphanums))
 assign = Group(Word(alphanums) + "=" + Word(alphanums))
 alias = Group(Keyword("alias") + Word(nums) + Word(alphanums))
-add = Group(Word("emp") + "+=" + Word(alphanums))
+add = Group(Word("emp") + "+=" + (Word(alphanums) | addressof))
 sub = Group(Word("emp") + "-=" + Word(alphanums))
 outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
@@ -26,6 +27,7 @@ if_block = Group(Suppress(Keyword("if")) + condition + Suppress(Keyword("then"))
 program_line << (if_block|_program_line)
 program = ZeroOrMore(program_line)
 
+AddressOf = namedtuple("AddressOf", ["addressee"])
 AssignOp = namedtuple("AssignOp", ["src", "dst"])
 AliasStmt = namedtuple("AliasStmt", ["tile_no", "symbolic_name"])
 AddOp = namedtuple("AddOp", ["addend"])
@@ -58,7 +60,8 @@ class BytecodeConverter(object):
                 "condjump": self.add_condjump,
                 "incr": self.add_incr,
                 "decr": self.add_decr,
-                "if": self.add_if
+                "if": self.add_if,
+                "addressof": self.add_addressof
         }[tokensType](string_, line, tokens)
 
     def add_assign(self, string_, line, tokens):
@@ -115,9 +118,13 @@ class BytecodeConverter(object):
             false_branch = []
         return IfOp(tokens[0], list(tokens[1]), false_branch)
 
+    def add_addressof(self, string_, line, tokens):
+        return AddressOf(tokens[0])
+
 def parse_it(fileObj):
     bcc = BytecodeConverter()
 
+    addressof.setParseAction(lambda s, line, tokens: bcc.add_tokenized("addressof", (s, line, tokens[0])))
     assign.setParseAction(lambda s, line, tokens: bcc.add_tokenized("assign", (s, line, tokens[0])))
     alias.setParseAction(lambda s, line, tokens: bcc.add_tokenized("alias", (s, line, tokens[0])))
     add.setParseAction(lambda s, line, tokens: bcc.add_tokenized("add", (s, line, tokens[0])))

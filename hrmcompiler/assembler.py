@@ -49,13 +49,25 @@ class Assembler(object):
             label=condjumpObj.label_name))
 
     def _alias_to_tile(self, candidate_alias):
+        if type(candidate_alias) == p.AddressOf:
+            is_address = True
+            candidate_alias = candidate_alias.addressee
+        else:
+            is_address = False
+
         if candidate_alias in self.aliases:
-            return self.aliases[candidate_alias]
+            tile_no = self.aliases[candidate_alias]
         else:
             try:
-                return int(candidate_alias)
+                tile_no = int(candidate_alias)
             except TypeError:
-                raise ValueError("the given tile is not an alias nor an int!", candidate_alias)
+                raise ValueError("the given tile is not an alias, an address nor an int!", candidate_alias)
+
+        if is_address:
+            return "[{0}]".format(tile_no)
+        else:
+            return tile_no
+
 
     def convert_incrop(self, incrObj):
         tile = self._alias_to_tile(incrObj.label_name)
