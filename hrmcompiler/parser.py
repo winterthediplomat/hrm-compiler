@@ -11,8 +11,8 @@ outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
 condjump = Group((Keyword("jez")|Keyword("jneg")) + Word(alphanums))
-incr = Group(Suppress(Keyword("incr")) + Word(alphanums))
-decr = Group(Suppress(Keyword("decr")) + Word(alphanums))
+incr = Group(Suppress(Keyword("incr")) + (Word(alphanums) | addressof))
+decr = Group(Suppress(Keyword("decr")) + (Word(alphanums) | addressof))
 
 program_line = Forward()
 _program_line = (assign | alias | add | sub | outbox | label | jump | condjump

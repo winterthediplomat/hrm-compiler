@@ -199,6 +199,22 @@ def test_incr_withnumber():
     assert type(ast[0]) == parser.IncrOp
     assert ast[0].label_name == "0"
 
+def test_incr_withlabel_address():
+    code = "incr *mylabel"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.IncrOp
+    assert ast[0].label_name == parser.AddressOf("mylabel")
+
+def test_incr_withnumber_address():
+    code = "incr *4"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.IncrOp
+    assert ast[0].label_name == parser.AddressOf("4")
+
 def test_decr_withlabel():
     code = "decr mylabel"
     with StringIO(code) as f:
@@ -214,4 +230,20 @@ def test_decr_withnumber():
 
     assert type(ast[0]) == parser.DecrOp
     assert ast[0].label_name == "0"
+
+def test_decr_withlabel_address():
+    code = "decr *mylabel"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.DecrOp
+    assert ast[0].label_name == parser.AddressOf("mylabel")
+
+def test_decr_withnumber_address():
+    code = "decr *4"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.DecrOp
+    assert ast[0].label_name == parser.AddressOf("4")
 
