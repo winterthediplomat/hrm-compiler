@@ -157,3 +157,31 @@ def test_add_undefined_addressOfAlias():
     with pytest.raises(ValueError):
         get_assembly(code)
 
+################ sub ######################
+
+def test_sub_tilenumber():
+    code = [parser.SubOp("3")]
+    assert get_assembly(code) == ["sub 3"]
+
+def test_sub_addressed_tilenumber():
+    code = [parser.SubOp(parser.AddressOf("3"))]
+    assert get_assembly(code) == ["sub [3]"]
+
+def test_sub_tilealias():
+    code = [
+        parser.AliasStmt("5", "myTile"),
+        parser.SubOp("myTile")
+    ]
+    assert get_assembly(code) == clean_output("""
+    sub 5
+    """)
+
+def test_sub_addressed_tilealias():
+    code = [
+        parser.AliasStmt("5", "myTile"),
+        parser.SubOp(parser.AddressOf("myTile"))
+    ]
+    assert get_assembly(code) == clean_output("""
+    sub [5]
+    """)
+

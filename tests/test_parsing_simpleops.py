@@ -167,6 +167,19 @@ def test_sub_from_nonEmp():
         with pytest.raises(pyparsing.ParseException):
             parser.parse_it(f)
 
+def test_sub_address_of_tile():
+    code = "emp -= *tile"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == parser.AddressOf("tile")
+
+def test_sub_address_of_number():
+    code = "emp -= *5"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == parser.AddressOf("5")
 
 #######################################################
 
