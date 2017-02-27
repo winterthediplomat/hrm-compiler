@@ -71,11 +71,11 @@ class Assembler(object):
 
     def convert_incrop(self, incrObj):
         tile = self._alias_to_tile(incrObj.label_name)
-        self.code.append("incr {tile}".format(tile=tile))
+        self.code.append("bump+ {tile}".format(tile=tile))
 
     def convert_decrop(self, decrObj):
         tile = self._alias_to_tile(decrObj.label_name)
-        self.code.append("decr {tile}".format(tile=tile))
+        self.code.append("bump- {tile}".format(tile=tile))
 
     def convert_if(self, ifObj):
         def create_adhoc_assembler():
