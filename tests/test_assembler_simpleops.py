@@ -94,37 +94,37 @@ def test_outbox():
 
 def test_incr_withnumber():
     code = [parser.IncrOp("0")]
-    assert get_assembly(code) == ["incr 0"]
+    assert get_assembly(code) == ["bump+ 0"]
 
 def test_incr_withlabel():
     code = [parser.AliasStmt("0", "mylabel"), parser.IncrOp("mylabel")]
-    assert get_assembly(code) == ["incr 0"]
+    assert get_assembly(code) == ["bump+ 0"]
 
 def test_incr_address_withnumber():
     code = [parser.IncrOp(parser.AddressOf("0"))]
-    assert get_assembly(code) == ["incr [0]"]
+    assert get_assembly(code) == ["bump+ [0]"]
 
 def test_incr_address_withlabel():
     code = [parser.AliasStmt("0", "mylabel"), parser.IncrOp(parser.AddressOf("mylabel"))]
-    assert get_assembly(code) == ["incr [0]"]
+    assert get_assembly(code) == ["bump+ [0]"]
 
 ##########################################
 
 def test_decr_withnumber():
     code = [parser.DecrOp("0")]
-    assert get_assembly(code) == ["decr 0"]
+    assert get_assembly(code) == ["bump- 0"]
 
 def test_decr_withlabel():
     code = [parser.AliasStmt("0", "mylabel"), parser.DecrOp("mylabel")]
-    assert get_assembly(code) == ["decr 0"]
+    assert get_assembly(code) == ["bump- 0"]
 
 def test_decr_address_withnumber():
     code = [parser.DecrOp(parser.AddressOf("0"))]
-    assert get_assembly(code) == ["decr [0]"]
+    assert get_assembly(code) == ["bump- [0]"]
 
 def test_decr_address_withlabel():
     code = [parser.AliasStmt("0", "mylabel"), parser.DecrOp(parser.AddressOf("mylabel"))]
-    assert get_assembly(code) == ["decr [0]"]
+    assert get_assembly(code) == ["bump- [0]"]
 
 ################# add ####################
 
