@@ -1,0 +1,12 @@
+# imagine each thing in the INBOX is an address. And each address refers
+# to a tile 0-9 on the floor. your task: for each address in the INBOX,
+# pick up the letter at that address and OUTBOX it
+
+alias 10 tmp
+
+start:
+emp = inbox
+tmp = emp
+emp = *tmp
+outbox
+jmp start

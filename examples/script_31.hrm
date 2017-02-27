@@ -1,0 +1,25 @@
+# For each zero-terminated string in the INBOX, reverse it
+# and put the result in the OUTBOX. Repeat!
+
+# tiles [0; 13] are free.
+alias 14 counter
+
+nextchar:
+emp = inbox
+
+if ez then
+  # start reversing
+	reverse:
+	emp = counter
+	if nz then
+		decr counter
+		emp = *counter
+		outbox
+		jmp reverse
+	endif
+else
+  # save into the floor
+	*counter = emp
+	incr counter
+endif
+jmp nextchar
