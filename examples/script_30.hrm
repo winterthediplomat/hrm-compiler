@@ -1,0 +1,21 @@
+# each thing in the INBOX is an address of a tile on the floor.
+# for each address provided in the INBOX, OUTBOX the requested
+# item from the floor and ALL FOLLOWING items on the floor
+# until you reach a ZERO. Repeat!
+
+alias 24 addr
+
+newaddr:
+emp = inbox
+addr = emp
+
+readnexttile:
+emp = *addr
+
+if ez then
+	jmp newaddr
+else
+	outbox
+	incr addr
+	jmp readnexttile
+endif

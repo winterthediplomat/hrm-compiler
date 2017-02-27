@@ -1,0 +1,33 @@
+# for each thing in the INBOX, send to the OUTBOx the total number
+# of matching items on the FLOOR
+
+alias 14 ZERO
+alias 15 counter
+alias 16 tmp
+alias 17 pointer
+
+reset:
+# initialize counter
+emp = ZERO
+counter = emp
+pointer = emp
+
+# read item
+emp = inbox
+tmp = emp
+
+compare:
+emp = *pointer
+if ez then
+	emp = counter
+	outbox
+	jmp reset
+else
+	emp = tmp
+	emp -= *pointer
+	if ez then
+		incr counter
+	endif
+	incr pointer
+	jmp compare
+endif
