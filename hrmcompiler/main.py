@@ -13,6 +13,7 @@ def main(args):
         checker.perform_label_checks(result_ast)
 
         result_ast = conversion.convert_ifnz_to_ifez(result_ast)
+        result_ast = conversion.convert_iftojump(result_ast)
 
         assembler = a.Assembler()
         assembler.convert(result_ast)

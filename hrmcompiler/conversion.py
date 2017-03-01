@@ -15,20 +15,27 @@ def convert_ifnz_to_ifez(ast):
             new_ast.append(ast_item)
     return new_ast
 
-def convert_iftojump(ast):
+def _convert_iftojump(ast, if_counter=0):
     new_ast = []
-    if_counter = 1
     for ast_item in ast:
         if type(ast_item) == IfOp:
-            new_ast.append(p.JumpCondOp("j"+ast_item.condition, "_hrm_{0}".format(if_counter)))
-            for op in ast_item.false_branch:
+            if_counter = if_counter + 1
+            new_ast.append(p.JumpCondOp(condition="j"+ast_item.condition,
+                label_name="_hrm_{0}".format(if_counter)))
+            converted_false_branch, counter = _convert_iftojump(ast_item.false_branch, if_counter)
+            for op in converted_false_branch:
                 new_ast.append(op)
             new_ast.append(p.JumpOp("_hrm_endif_{0}".format(if_counter)))
             new_ast.append(p.LabelStmt("_hrm_{0}".format(if_counter)))
-            for op in ast_item.true_branch:
+            converted_true_branch, counter = _convert_iftojump(ast_item.true_branch, counter)
+            for op in converted_true_branch:
                 new_ast.append(op)
             new_ast.append(p.LabelStmt("_hrm_endif_{0}".format(if_counter)))
-            if_counter += 1
+            if_counter = counter
         else:
             new_ast.append(ast_item)
+    return new_ast, if_counter
+
+def convert_iftojump(ast):
+    new_ast, counter = _convert_iftojump(ast)
     return new_ast

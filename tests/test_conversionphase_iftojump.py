@@ -19,7 +19,7 @@ def test_convert_iftojump_onlytruebranch():
             p.OutboxOp()
         ], [])]
     expected_ast = [
-        p.JumpCondOp("jez", "_hrm_1"),
+        p.JumpCondOp(condition="jez", label_name="_hrm_1"),
         p.JumpOp("_hrm_endif_1"),
         p.LabelStmt("_hrm_1"),
         p.OutboxOp(),
@@ -34,13 +34,13 @@ def test_convert_iftojump_onlytruebranch_consecutive():
         p.IfOp("ez", [p.OutboxOp()], [])]
     expected_ast = [
         # first IF
-        p.JumpCondOp("jez", "_hrm_1"),
+        p.JumpCondOp(condition="jez", label_name="_hrm_1"),
         p.JumpOp("_hrm_endif_1"),
         p.LabelStmt("_hrm_1"),
         p.OutboxOp(),
         p.LabelStmt("_hrm_endif_1"),
         # second IF
-        p.JumpCondOp("jez", "_hrm_2"),
+        p.JumpCondOp(condition="jez", label_name="_hrm_2"),
         p.JumpOp("_hrm_endif_2"),
         p.LabelStmt("_hrm_2"),
         p.OutboxOp(),
@@ -54,7 +54,7 @@ def test_convert_iftojump_onlyfalsebranch():
             p.OutboxOp()
         ])]
     expected_ast = [
-        p.JumpCondOp("jez", "_hrm_1"),
+        p.JumpCondOp(condition="jez", label_name="_hrm_1"),
         p.OutboxOp(),
         p.JumpOp("_hrm_endif_1"),
         p.LabelStmt("_hrm_1"),
@@ -72,12 +72,12 @@ def test_convert_iftojump_onlyfalsebranch_consecutive():
             p.OutboxOp()
         ])]
     expected_ast = [
-        p.JumpCondOp("jez", "_hrm_1"),
+        p.JumpCondOp(condition="jez", label_name="_hrm_1"),
         p.OutboxOp(),
         p.JumpOp("_hrm_endif_1"),
         p.LabelStmt("_hrm_1"),
         p.LabelStmt("_hrm_endif_1"),
-        p.JumpCondOp("jez", "_hrm_2"),
+        p.JumpCondOp(condition="jez", label_name="_hrm_2"),
         p.OutboxOp(),
         p.JumpOp("_hrm_endif_2"),
         p.LabelStmt("_hrm_2"),
@@ -86,5 +86,29 @@ def test_convert_iftojump_onlyfalsebranch_consecutive():
     ast = c.convert_iftojump(code)
     assert ast == expected_ast
 
-
-
+def test_convert_iftojump_nested():
+    code = [
+        p.IfOp("ez", [
+            p.IfOp("ez", [p.AssignOp("inbox", "emp")], [p.OutboxOp()]),
+        ], [
+            p.IfOp("neg", [p.AssignOp("inbox", "emp")], [p.OutboxOp()])
+        ])]
+    expected_ast = [
+        p.JumpCondOp(condition="jez", label_name="_hrm_1"),
+          p.JumpCondOp(condition="jneg", label_name="_hrm_2"),
+            p.OutboxOp(),
+            p.JumpOp("_hrm_endif_2"),
+          p.LabelStmt("_hrm_2"),
+            p.AssignOp("inbox", "emp"),
+          p.LabelStmt("_hrm_endif_2"),
+       p.JumpOp("_hrm_endif_1"),
+       p.LabelStmt("_hrm_1"),
+          p.JumpCondOp(condition="jez", label_name="_hrm_3"),
+            p.OutboxOp(),
+            p.JumpOp("_hrm_endif_3"),
+          p.LabelStmt("_hrm_3"),
+            p.AssignOp("inbox", "emp"),
+          p.LabelStmt("_hrm_endif_3"),
+       p.LabelStmt("_hrm_endif_1")]
+    ast = c.convert_iftojump(code)
+    assert ast == expected_ast
