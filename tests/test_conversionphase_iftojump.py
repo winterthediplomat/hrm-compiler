@@ -112,3 +112,8 @@ def test_convert_iftojump_nested():
        p.LabelStmt("_hrm_endif_1")]
     ast = c.convert_iftojump(code)
     assert ast == expected_ast
+
+def test_convert_ifnojump_no_ifs_remaining():
+    code = [p.IfOp("ez", [p.OutboxOp()], [p.AssignOp("inbox", "emp")])]
+    ast = c.convert_iftojump(code)
+    assert not [ast_item for ast_item in ast if type(ast_item) == p.IfOp]
