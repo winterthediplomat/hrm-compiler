@@ -131,5 +131,11 @@ def minimize_labels(ast):
             jcond_ic = jcond_stack.pop()
             _, ic = next_pointers[jcond_ic]
 
+    minimized_ast = []
+    for index, ast_item in enumerate(ast):
+        if visited[index]:
+            if assoc[index]:
+                minimized_ast.append(p.LabelStmt(assoc[index]))
+            minimized_ast.append(ast_item)
 
     return minimized_ast
