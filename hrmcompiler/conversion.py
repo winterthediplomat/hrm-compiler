@@ -1,5 +1,6 @@
 from hrmcompiler.parser import IfOp
 import hrmcompiler.parser as p
+from pprint import pprint
 
 def convert_ifnz_to_ifez(ast):
     new_ast = []
@@ -39,3 +40,96 @@ def _convert_iftojump(ast, if_counter=0):
 def convert_iftojump(ast):
     new_ast, counter = _convert_iftojump(ast)
     return new_ast
+
+#def labels_in_ast(ast):
+#    assoc = dict()
+#    for index, ast_item in enumerate(ast):
+#        if type(ast_item) == p.LabelStmt:
+#            assoc[ast_item.label_name] = index
+#    return assoc
+
+def labels_in_ast(ast):
+    assoc = dict()
+    label_at_position = []
+    saved_labels = []
+    found_label = False
+    for index, ast_item in enumerate(ast):
+        if type(ast_item) == p.LabelStmt:
+            label_at_position.append(None)
+            saved_labels.append(ast_item.label_name)
+            found_label = True
+        else:
+            if found_label:
+                label_at_position.append(saved_labels)
+                for label in saved_labels:
+                    assoc[label] = index
+                saved_labels = []
+            else:
+                label_at_position.append(None)
+
+            found_label = False
+
+    return (assoc, label_at_position)
+
+def minimize_labels(ast):
+    minimized_ast = []
+    labels_positions, label_at_pos = labels_in_ast(ast)
+
+    # tree-like structure
+    next_pointers = [None for instr in ast]
+    visited = [False for instr in ast]
+    assoc = [None for instr in ast]
+    ic = 0
+    jcond_stack = []
+    last_was_jmp = False
+    prev_ic = 0 
+    INSTRUCTIONS_NUM = len(ast)
+
+    while ic < INSTRUCTIONS_NUM:
+        # read instruction
+        instr = ast[ic]
+        print("status dump [ic = {0}]".format(ic))
+        print("instr:", instr)
+        print("visited", visited)
+        print("next_pointers", next_pointers)
+        print("assoc", assoc)
+        prev_ic = ic
+        last_was_jmp = False
+        if not visited[ic]:
+            # S_notvis
+            if type(instr) == p.LabelStmt:
+                # S_label
+                ic += 1
+            else:
+                visited[ic] = True
+                if type(instr) == p.JumpOp:
+                    # S_jmp
+                    _next_pos = labels_positions[instr.label_name]
+                    if last_was_jmp:
+                        next_pointers[prev_ic] = (_next_pos, -1)
+                    else:
+                        next_pointers[ic] = (_next_pos, -1)
+                    assoc[_next_pos] = instr.label_name
+                    ic = _next_pos
+                    last_was_jmp = True
+                else:
+                    if type(instr) == p.JumpCondOp:
+                        # S_jcond
+                        jcond_stack.append(ic)
+                        _jcond_pos = labels_positions[instr.label_name]
+                        next_pointers[ic] = (ic+1, _jcond_pos)
+                        assoc[_jcond_pos] = instr.label_name
+                        ic += 1
+                    else:
+                        # S_normal
+                        next_pointers[ic] = (ic+1, -1)
+                        ic += 1
+        else:
+            if not jcond_stack:
+                break
+            # jcond_stack is not empty
+            jcond_ic = jcond_stack.pop()
+            _, ic = next_pointers[jcond_ic]
+
+
+    return minimized_ast

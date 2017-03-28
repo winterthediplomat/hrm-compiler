@@ -4,7 +4,7 @@ HRM Compiler
 Work-in-progress compiler to have an high-level tool
 to reason about problems in Human Resources Machines.
 
-I hate pseudo-assembly.
+I hate pseudo-assembly, and I want to write a compiler.
 
 ## Install
 
@@ -12,8 +12,7 @@ I hate pseudo-assembly.
 virtualenv .hrm
 source .hrm/bin/activate
 
-pip install pyparsing pytest
-pip install .
+pip install -e .
 ```
 
 ## Usage
@@ -22,13 +21,16 @@ pip install .
 
 ## Run tests
 
-Use `pytest`, it will find all the tests. I started writing it without tests,
-but now it'll be more test-driven.
+Use `pytest`, it will find all the tests.
+I don't have end-to-end tests (from source language to target language) though.
 
 ## Examples
 
 There is no formal doc about the accepted grammar (check _parser.py_),
 but you can find some examples in the `examples` folder.
 
-* script.hrm: solve the problem #9 (multiply by 8)
-* script10.hrm : solve the problem #10 (multiply by 40)
+## Source code location
+
+The version hosted on [github](https://github.com/alfateam123/hrm-compiler) is a mirror of the version hosted on
+the self-hosted version at [wintermade.it/code/winterthediplomat/HRM-compiler](https://wintermade.it/code/winterthediplomat/HRM-compiler).
+
