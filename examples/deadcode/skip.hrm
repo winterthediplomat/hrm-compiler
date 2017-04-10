@@ -1,0 +1,12 @@
+alias 5 tmp
+
+emp = inbox
+tmp = emp
+jmp skip
+
+# this operation will not appear
+# if the "dead code elimination" pass is active
+outbox
+
+skip:
+emp += tmp
