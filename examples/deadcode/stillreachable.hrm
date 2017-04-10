@@ -1,0 +1,7 @@
+emp = inbox
+jmp skip
+ahah:
+outbox
+
+skip:
+jmp ahah

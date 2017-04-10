@@ -41,13 +41,6 @@ def convert_iftojump(ast):
     new_ast, counter = _convert_iftojump(ast)
     return new_ast
 
-#def labels_in_ast(ast):
-#    assoc = dict()
-#    for index, ast_item in enumerate(ast):
-#        if type(ast_item) == p.LabelStmt:
-#            assoc[ast_item.label_name] = index
-#    return assoc
-
 def labels_in_ast(ast):
     assoc = dict()
     label_at_position = []
@@ -71,7 +64,7 @@ def labels_in_ast(ast):
 
     return (assoc, label_at_position)
 
-def minimize_labels(ast):
+def remove_unreachable_code(ast):
     minimized_ast = []
     labels_positions, label_at_pos = labels_in_ast(ast)
 
@@ -82,17 +75,12 @@ def minimize_labels(ast):
     ic = 0
     jcond_stack = []
     last_was_jmp = False
-    prev_ic = 0 
+    prev_ic = 0
     INSTRUCTIONS_NUM = len(ast)
 
     while ic < INSTRUCTIONS_NUM:
         # read instruction
         instr = ast[ic]
-        print("status dump [ic = {0}]".format(ic))
-        print("instr:", instr)
-        print("visited", visited)
-        print("next_pointers", next_pointers)
-        print("assoc", assoc)
         prev_ic = ic
         last_was_jmp = False
         if not visited[ic]:
