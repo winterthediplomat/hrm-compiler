@@ -134,17 +134,21 @@ def compress_jumps(ast):
     labels_positions, label_at_pos = labels_in_ast(ast)
 
     for index, ast_item in enumerate(ast):
-        if type(ast_item) == p.JumpOp:
+        if type(ast_item) in [p.JumpOp, p.JumpCondOp]:
             visited = [False for i in ast]
             _label = ast_item.label_name
             next_pos = labels_positions[_label]
-            while type(ast[next_pos]) == p.JumpOp and not visited[next_pos]:
+            while type(ast[next_pos]) == p.JumpOp and \
+                    not visited[next_pos]:
                 visited[next_pos] = True
                 _label = ast[next_pos].label_name
                 next_pos = labels_positions[_label]
-            compressed_ast.append(p.JumpOp(_label))
+
+            if type(ast_item) == p.JumpOp:
+                compressed_ast.append(p.JumpOp(_label))
+            else:
+                compressed_ast.append(p.JumpCondOp(_label, ast_item.condition))
         else:
             compressed_ast.append(ast_item)
-
 
     return compressed_ast

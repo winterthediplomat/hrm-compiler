@@ -53,8 +53,7 @@ def test_compress_multi_jump():
 def test_avoid_loop():
     start_ast = [
         parser.LabelStmt("test"),
-        parser.JumpOp("test"),
-        parser.OutboxOp()
+        parser.JumpOp("test")
     ]
     expected_ast = start_ast
     ast = compress_jumps(start_ast)
@@ -69,6 +68,77 @@ def test_compress_jcond_no_compress():
           parser.OutboxOp(),
         parser.LabelStmt("endif"),
         parser.OutboxOp()
+    ]
+    expected_ast = start_ast
+    ast = compress_jumps(start_ast)
+    assert ast == expected_ast
+
+def test_compress_jcond_single():
+    start_ast = [
+        parser.LabelStmt("start"),
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp("if", "ez"),
+            parser.OutboxOp(),
+            parser.JumpOp("endif"),
+        parser.LabelStmt("if"),
+            parser.JumpOp("start"),
+        parser.LabelStmt("endif"),
+        parser.OutboxOp()
+    ]
+    expected_ast = [
+        parser.LabelStmt("start"),
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp("start", "ez"),
+            parser.OutboxOp(),
+            parser.JumpOp("endif"),
+        parser.LabelStmt("if"),
+            parser.JumpOp("start"),
+        parser.LabelStmt("endif"),
+        parser.OutboxOp()
+    ]
+    ast = compress_jumps(start_ast)
+    assert ast == expected_ast
+
+def test_compress_jcond_multi():
+    start_ast = [
+        parser.LabelStmt("start"),
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp("if", "ez"),
+            parser.OutboxOp(),
+            parser.JumpOp("endif"),
+        parser.LabelStmt("if"),
+            parser.JumpOp("interm_first"),
+        parser.LabelStmt("endif"),
+        parser.OutboxOp(),
+        parser.LabelStmt("interm_first"),
+        parser.JumpOp("interm_last"),
+        parser.LabelStmt("interm_last"),
+        parser.JumpOp("start")
+    ]
+    expected_ast = [
+        parser.LabelStmt("start"),
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp("start", "ez"),
+            parser.OutboxOp(),
+            parser.JumpOp("endif"),
+        parser.LabelStmt("if"),
+            parser.JumpOp("start"),
+        parser.LabelStmt("endif"),
+        parser.OutboxOp(),
+        parser.LabelStmt("interm_first"),
+        parser.JumpOp("start"),
+        parser.LabelStmt("interm_last"),
+        parser.JumpOp("start")
+    ]
+    ast = compress_jumps(start_ast)
+    assert ast == expected_ast
+
+def test_jcond_avoid_loop():
+    start_ast = [
+        parser.LabelStmt("test"),
+        parser.JumpCondOp("test", "ez"),
+        parser.OutboxOp(),
+        parser.JumpOp("test"),
     ]
     expected_ast = start_ast
     ast = compress_jumps(start_ast)
