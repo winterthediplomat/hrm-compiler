@@ -127,3 +127,39 @@ def remove_unreachable_code(ast):
             minimized_ast.append(ast_item)
 
     return minimized_ast
+
+
+def compress_jumps(ast):
+    compressed_ast = []
+    labels_positions, label_at_pos = labels_in_ast(ast)
+
+    for index, ast_item in enumerate(ast):
+        if type(ast_item) in [p.JumpOp, p.JumpCondOp]:
+            jump_going_nowhere = False
+            visited = [False for i in ast]
+            _label = ast_item.label_name
+            try:
+                next_pos = labels_positions[_label]
+            except KeyError:
+                jump_going_nowhere = True
+
+            while type(ast[next_pos]) == p.JumpOp and \
+                    not visited[next_pos] and \
+                    not jump_going_nowhere:
+                visited[next_pos] = True
+                _label = ast[next_pos].label_name
+                try:
+                    next_pos = labels_positions[_label]
+                except KeyError:
+                    jump_going_nowhere = True
+
+            if jump_going_nowhere:
+                pass
+            elif type(ast_item) == p.JumpOp:
+                compressed_ast.append(p.JumpOp(_label))
+            else:
+                compressed_ast.append(p.JumpCondOp(_label, ast_item.condition))
+        else:
+            compressed_ast.append(ast_item)
+
+    return compressed_ast

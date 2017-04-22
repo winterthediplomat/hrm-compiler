@@ -15,6 +15,7 @@ def main(args):
 
         result_ast = conversion.convert_ifnz_to_ifez(result_ast)
         result_ast = conversion.convert_iftojump(result_ast)
+        result_ast = conversion.compress_jumps(result_ast)
         result_ast = conversion.remove_unreachable_code(result_ast)
 
         assembler = a.Assembler()
