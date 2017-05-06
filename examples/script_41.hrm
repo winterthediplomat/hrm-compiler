@@ -1,0 +1,89 @@
+# Sorting Floor
+# For each zero-terminated string in the INBOX, SORT the contents of the string
+# smallest first, biggest last, and put the results in the OUTBOX.
+# Repeat for each string!
+
+
+# Floor: 5x5 floor, all but one cell are empty
+alias 24 ZERO
+alias 20 address
+
+alias 21 innerAddress
+alias 22 tmpItem
+alias 23 counterBackup
+
+start:
+emp = ZERO
+address = emp
+
+readitem:
+# fill memory with the string
+emp = inbox
+# if zero has been drawn from INBOX, then the string is ended: let's sort it!
+if ez then
+	emp = address
+	counterBackup = emp
+	#decr address
+	jmp sort
+else
+	*address = emp
+	incr address
+	jmp readitem
+endif
+
+sort:
+# address contains the number of characters in the string
+
+# bubblesort
+# for i = address to ZERO (included) then
+#   for j = i - 1 to ZERO (included) then
+#     if arr[i] < arr[j] then
+#        # swap arr[i] and arr[j]
+#        tmp = arr[i]
+#        arr[i] = arr[j]
+#        arr[j] = tmp
+#   endif
+# endif
+#emp = address
+decr address
+if neg then
+	jmp writeThemAll
+else
+	# i >= 0
+	
+	# setup j
+	innerAddress = emp
+	innerCycle:
+	decr innerAddress
+
+	if neg then
+		jmp sort
+	else
+		emp = *innerAddress
+		emp -= *address
+		if neg then
+			jmp innerCycle
+		else
+			# swap them
+
+			# do a copy, not an add because the input can be "letters"
+			# and `add` for letters is not defined in the game
+			emp = *innerAddress
+			tmpItem = emp
+			emp = *address
+			*innerAddress = emp
+			emp = tmpItem
+			*address = emp
+		endif
+		jmp innerCycle
+	endif
+endif
+
+writeThemAll:
+# address = 0 now
+incr address
+emp = *address
+outbox
+decr counterBackup
+jez start
+jmp writeThemAll
