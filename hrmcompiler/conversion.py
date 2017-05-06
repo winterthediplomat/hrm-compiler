@@ -143,15 +143,16 @@ def compress_jumps(ast):
             except KeyError:
                 jump_going_nowhere = True
 
-            while type(ast[next_pos]) == p.JumpOp and \
+            if not jump_going_nowhere:
+                while type(ast[next_pos]) == p.JumpOp and \
                     not visited[next_pos] and \
                     not jump_going_nowhere:
-                visited[next_pos] = True
-                _label = ast[next_pos].label_name
-                try:
-                    next_pos = labels_positions[_label]
-                except KeyError:
-                    jump_going_nowhere = True
+                    visited[next_pos] = True
+                    _label = ast[next_pos].label_name
+                    try:
+                        next_pos = labels_positions[_label]
+                    except KeyError:
+                        jump_going_nowhere = True
 
             if jump_going_nowhere:
                 pass
