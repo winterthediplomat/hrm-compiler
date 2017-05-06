@@ -1,0 +1,40 @@
+# Scavenger Chain
+# Each pair on the floor contains:
+# 1. data
+# 2. the address of another one of the pairs
+# A scrambled chain! Each thing in the INBOX is an address of one
+# of the pairs. OUTBOX the data for that pair, and also the data in all
+# following pairs in the chain. The chain ends when you reach a negative
+# address. Repeat until the INBOX is empty.
+
+# Floor is 5 rows x 5 columns, and at each odd row, there are
+# two pairs (letter, number) separated by an empty cell.
+# Even rows only contain empty cells.
+
+# cell 12 is empty
+alias 12 address
+
+readitem:
+emp = inbox
+address = emp
+
+writenext:
+# read item at given position
+emp = *address
+# ... and write it
+outbox
+
+# generate the next position to be reached
+incr address
+# read the next position at the referenced cell
+emp = *address
+
+if neg then
+	# terminated the chain! go read another item from INBOX
+	jmp readitem
+else
+  # chain doesn't stop here.
+	# setup `address` for the next position
+	address = emp
+	jmp writenext
+endif
