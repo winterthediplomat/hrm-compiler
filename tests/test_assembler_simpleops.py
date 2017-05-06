@@ -32,7 +32,7 @@ def test_copyto_alias():
     code = [parser.AliasStmt(3, "knownLabel"), parser.AssignOp("emp", "knownLabel")]
     assert get_assembly(code) == ["copyto 3"]
 
-def test_copyto_unaliased():
+def test_assignop_no_emp():
     code = [parser.AssignOp(src="eng", dst="cell")]
     with pytest.raises(ValueError):
         _ = get_assembly(code)
@@ -105,6 +105,11 @@ def test_incr_withlabel():
     code = [parser.AliasStmt("0", "mylabel"), parser.IncrOp("mylabel")]
     assert get_assembly(code) == ["bump+ 0"]
 
+def test_incr_withlabel_unaliased():
+    code = [parser.IncrOp("mylabel")]
+    with pytest.raises(ValueError):
+        _ = get_assembly(code)
+
 def test_incr_address_withnumber():
     code = [parser.IncrOp(parser.AddressOf("0"))]
     assert get_assembly(code) == ["bump+ [0]"]
@@ -112,6 +117,11 @@ def test_incr_address_withnumber():
 def test_incr_address_withlabel():
     code = [parser.AliasStmt("0", "mylabel"), parser.IncrOp(parser.AddressOf("mylabel"))]
     assert get_assembly(code) == ["bump+ [0]"]
+
+def test_incr_address_withlabel_unaliased():
+    code = [parser.IncrOp(parser.AddressOf("mylabel"))]
+    with pytest.raises(ValueError):
+        _ = get_assembly(code)
 
 ##########################################
 
@@ -123,6 +133,11 @@ def test_decr_withlabel():
     code = [parser.AliasStmt("0", "mylabel"), parser.DecrOp("mylabel")]
     assert get_assembly(code) == ["bump- 0"]
 
+def test_decr_withlabel_unaliased():
+    code = [parser.DecrOp("mylabel")]
+    with pytest.raises(ValueError):
+        _ = get_assembly(code)
+
 def test_decr_address_withnumber():
     code = [parser.DecrOp(parser.AddressOf("0"))]
     assert get_assembly(code) == ["bump- [0]"]
@@ -130,6 +145,11 @@ def test_decr_address_withnumber():
 def test_decr_address_withlabel():
     code = [parser.AliasStmt("0", "mylabel"), parser.DecrOp(parser.AddressOf("mylabel"))]
     assert get_assembly(code) == ["bump- [0]"]
+
+def test_decr_address_withlabel_unaliased():
+    code = [parser.DecrOp(parser.AddressOf("mylabel"))]
+    with pytest.raises(ValueError):
+        _ = get_assembly(code)
 
 ################# add ####################
 
@@ -205,4 +225,14 @@ def test_sub_addressed_tilealias():
     assert get_assembly(code) == clean_output("""
     sub [5]
     """)
+
+def test_sub_undefined_alias():
+    code = [parser.SubOp("myTile")]
+    with pytest.raises(ValueError):
+        get_assembly(code)
+
+def test_sub_undefined_addressOfAlias():
+    code = [parser.SubOp("*myTile")]
+    with pytest.raises(ValueError):
+        get_assembly(code)
 
