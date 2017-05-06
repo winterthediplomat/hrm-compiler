@@ -1,0 +1,59 @@
+# Send everything from the INBOX to the OUTBOx, unless you've seen the same
+# value before. Discard any duplicates.
+
+# FLOOR: [0; 13] free
+# 14: ZERO
+alias 14 counter
+alias 13 tmp
+alias 12 addr
+
+# read the first item from INBOX.
+emp = inbox
+# save it in memory at position `counter` (0)
+*counter = emp
+# the first element cannot be a duplicate!
+outbox
+
+# start
+start:
+# addr = counter
+emp = counter
+addr = emp
+
+# read
+emp = inbox
+# store item in `tmp` position
+tmp = emp
+
+# compare item from the more recently written
+# to the least recently written
+compare:
+emp -= *addr
+if nz then
+  # not equal, let's compare some more
+	# ... after checking if this is the last "written" item
+	emp = addr
+	if ez then
+    # yay, original item!
+		# increase the written items counter
+		incr counter
+    # ... and copy the item into memory
+		emp = tmp
+		*counter = emp
+    # ... and write it into outbox
+		outbox
+    # and let's start again!
+		jmp start
+	else
+		# not the last one, continue comparing:
+		# decrease the address
+		decr addr
+    # copy the item to compare
+		emp = tmp
+		jmp compare
+	endif
+endif
+
+# at the first duplicate
+jmp start
+
