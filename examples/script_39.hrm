@@ -1,0 +1,43 @@
+# Re-Coordinator
+# Each number in the INBOX is an address of a tile on the floor.
+# Send to the OUTBOX the coordinates of that tile, column first, row second.
+# For example, an address of 6 has coordinates 2, 1. You may ask your boss
+# for more examples.
+
+# FLOOR
+# 15: 4
+alias 15 CellsInRow
+# 14: zero
+alias 14 ZERO
+
+# our places:
+alias 13 quotientRows
+alias 12 tmp
+
+start:
+# setup: quotient = ZERO
+emp = ZERO
+quotientRows = emp
+
+# program
+# read floor index from INBOX
+emp = inbox
+
+calculateCoords:
+# get `emp % CellsInRow` (= `emp % 4`)
+# as row = emp/4, col = emp % 4
+emp -= CellsInRow
+if neg then
+  emp += CellsInRow
+  # outbox the column
+	outbox
+	emp = quotientRows
+  # outbox the row
+	outbox
+	jmp start
+else
+	tmp = emp
+	incr quotientRows
+	emp = tmp
+	jmp calculateCoords
+endif
