@@ -32,6 +32,11 @@ def test_copyto_alias():
     code = [parser.AliasStmt(3, "knownLabel"), parser.AssignOp("emp", "knownLabel")]
     assert get_assembly(code) == ["copyto 3"]
 
+def test_copyto_unaliased():
+    code = [parser.AssignOp(src="eng", dst="cell")]
+    with pytest.raises(ValueError):
+        _ = get_assembly(code)
+
 def test_copyfrom_equivalence():
     alias_ast = [parser.AliasStmt(3, "knownLabel"), parser.AssignOp("knownLabel", "emp")]
     tile_ast = [parser.AssignOp("3", "emp")]
