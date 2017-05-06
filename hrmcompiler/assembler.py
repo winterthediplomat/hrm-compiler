@@ -11,6 +11,9 @@ class Assembler(object):
         self.aliases[aliasObj.symbolic_name] = aliasObj.tile_no
 
     def convert_assign(self, assignObj):
+        if(assignObj.src != "emp" and assignObj.dst != "emp"):
+            raise ValueError("This assigment does not copy from or to `emp`:", assignObj)
+
         if assignObj.src == "emp":
             # copyto
             destination_tile = self._alias_to_tile(assignObj.dst)

@@ -12,6 +12,7 @@ def main(args):
         result_ast = p.parse_it(src)
 
         checker.perform_label_checks(result_ast)
+        checker.perform_variable_checks(result_ast)
 
         result_ast = conversion.convert_ifnz_to_ifez(result_ast)
         result_ast = conversion.convert_iftojump(result_ast)
