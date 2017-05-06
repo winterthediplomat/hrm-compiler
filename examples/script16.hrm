@@ -6,7 +6,7 @@ alias 0 tmp
 start:
 emp = inbox
 if neg then
-	tmp = eng
+	tmp = emp
   # with k = -a
 	# k -k -k = 0 -k = -k = {k=-a} a
 	emp -= tmp
