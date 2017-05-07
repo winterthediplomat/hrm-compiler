@@ -206,3 +206,23 @@ def test_labelinast_invalid_access():
     ]
     labels_positions, _ = labels_in_ast(start_ast)
     assert "test" not in labels_positions
+
+def test_dont_optimize_conditional_jumps():
+    """
+    if ez then
+        # nothing, but the `jez` must not be removed!
+        # if removed, the program becomes only `outbox`,
+        # that is incorrect.
+    else
+        outbox
+    endif
+    """
+    start_ast = [
+            parser.JumpCondOp(label_name='_hrm_1', condition='jez'),
+            parser.OutboxOp(),
+            parser.JumpOp(label_name="_hrm_endif_1"),
+            parser.LabelStmt(label_name="_hrm_1"),
+            parser.LabelStmt(label_name="_hrm_endif_1")
+    ]
+    ast = compress_jumps(start_ast)
+    assert parser.JumpCondOp(label_name="_hrm_1", condition="jez") in ast

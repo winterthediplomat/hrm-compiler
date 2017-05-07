@@ -139,9 +139,18 @@ def compress_jumps(ast):
             visited = [False for i in ast]
             _label = ast_item.label_name
             try:
+                # get the first position executable by `_label`
                 next_pos = labels_positions[_label]
             except KeyError:
                 jump_going_nowhere = True
+
+            if jump_going_nowhere:
+                # even though the **conditional** jump redirects to a label
+                # that is _not_ associated to any instruction, removing conditional
+                # jumps alters the logic of the program
+                if type(ast_item) == p.JumpCondOp:
+                    compressed_ast.append(ast_item)
+                    continue
 
             if not jump_going_nowhere:
                 while type(ast[next_pos]) == p.JumpOp and \
