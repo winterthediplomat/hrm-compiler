@@ -85,3 +85,16 @@ def test_still_reachable():
     ast = remove_unreachable_code(start_ast)
     assert ast == start_ast
 
+def test_dont_keep_only_last_label_on_instruction():
+    start_ast = [
+        parser.AssignOp(src='inbox', dst='emp'),
+        parser.JumpCondOp(label_name='_hrm_1', condition='jez'),
+        parser.OutboxOp(),
+        parser.JumpOp(label_name="_hrm_endif_1"),
+        parser.LabelStmt("_hrm_1"),
+        parser.LabelStmt("_hrm_endif_1"),
+        parser.AssignOp(src="inbox", dst="emp")
+    ]
+    ast = remove_unreachable_code(start_ast)
+    assert parser.LabelStmt("_hrm_endif_1") in ast
+    assert parser.LabelStmt("_hrm_1") in ast

@@ -97,7 +97,10 @@ def remove_unreachable_code(ast):
                         next_pointers[prev_ic] = (_next_pos, -1)
                     else:
                         next_pointers[ic] = (_next_pos, -1)
-                    assoc[_next_pos] = instr.label_name
+                    if assoc[_next_pos] != None:
+                        assoc[_next_pos].append(instr.label_name)
+                    else:
+                        assoc[_next_pos] = [instr.label_name]
                     ic = _next_pos
                     last_was_jmp = True
                 else:
@@ -106,7 +109,10 @@ def remove_unreachable_code(ast):
                         jcond_stack.append(ic)
                         _jcond_pos = labels_positions[instr.label_name]
                         next_pointers[ic] = (ic+1, _jcond_pos)
-                        assoc[_jcond_pos] = instr.label_name
+                        if assoc[_jcond_pos] != None:
+                            assoc[_jcond_pos].append(instr.label_name)
+                        else:
+                            assoc[_jcond_pos] = [instr.label_name]
                         ic += 1
                     else:
                         # S_normal
@@ -123,7 +129,8 @@ def remove_unreachable_code(ast):
     for index, ast_item in enumerate(ast):
         if visited[index]:
             if assoc[index]:
-                minimized_ast.append(p.LabelStmt(assoc[index]))
+                for label_name in assoc[index]:
+                    minimized_ast.append(p.LabelStmt(label_name))
             minimized_ast.append(ast_item)
 
     return minimized_ast
