@@ -129,7 +129,7 @@ def remove_unreachable_code(ast):
     for index, ast_item in enumerate(ast):
         if visited[index]:
             if assoc[index]:
-                for label_name in assoc[index]:
+                for label_name in sorted(set(assoc[index])):
                     minimized_ast.append(p.LabelStmt(label_name))
             minimized_ast.append(ast_item)
 
