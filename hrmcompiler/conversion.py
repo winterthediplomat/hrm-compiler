@@ -78,7 +78,23 @@ def remove_unreachable_code(ast):
     prev_ic = 0
     INSTRUCTIONS_NUM = len(ast)
 
-    while ic < INSTRUCTIONS_NUM:
+    def next_ic_in_jcond_stack(jcond_stack):
+        while jcond_stack:
+            jcond_ic = jcond_stack.pop()
+            _, maybe_ic = next_pointers[jcond_ic]
+            if maybe_ic != None:
+                return maybe_ic
+        return None
+
+    while ic < INSTRUCTIONS_NUM or jcond_stack:
+        # if we reached the last instruction of the program,
+        # but we still have some unexplored `jcond`s, we must explore
+        # these "forgotten" paths too!
+        if not (ic < INSTRUCTIONS_NUM) and jcond_stack:
+            ic = next_ic_in_jcond_stack(jcond_stack) or ic
+            if ic >= INSTRUCTIONS_NUM and not jcond_stack:
+                break
+
         # read instruction
         instr = ast[ic]
         prev_ic = ic
@@ -128,14 +144,7 @@ def remove_unreachable_code(ast):
         else:
             if not jcond_stack:
                 break
-            found = False
-            while not found and jcond_stack:
-                # jcond_stack is not empty
-                jcond_ic = jcond_stack.pop()
-                _, maybe_ic = next_pointers[jcond_ic]
-                if maybe_ic != None:
-                    ic = maybe_ic
-                    found = True
+            ic = next_ic_in_jcond_stack(jcond_stack) or ic
 
     minimized_ast = []
     for index, ast_item in enumerate(ast):

@@ -161,3 +161,17 @@ def test_unreachable_condjumps():
     ]
     ast = remove_unreachable_code(start_ast)
     assert ast == expected_ast
+
+def test_no_operation_ignored_in_nonlooping_code():
+    start_ast = [
+        parser.JumpCondOp("_hrm_1", "jez"),
+            parser.IncrOp("a_field"),
+            parser.JumpOp("the_fence"),
+        parser.LabelStmt("_hrm_1"),
+            parser.IncrOp("b_field"),
+        parser.LabelStmt("the_fence"),
+        parser.IncrOp("c_field")
+    ]
+    ast = remove_unreachable_code(start_ast)
+    assert parser.IncrOp("b_field") in start_ast
+    assert parser.IncrOp("b_field") in ast
