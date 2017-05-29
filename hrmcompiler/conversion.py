@@ -78,7 +78,23 @@ def remove_unreachable_code(ast):
     prev_ic = 0
     INSTRUCTIONS_NUM = len(ast)
 
-    while ic < INSTRUCTIONS_NUM:
+    def next_ic_in_jcond_stack(jcond_stack):
+        while jcond_stack:
+            jcond_ic = jcond_stack.pop()
+            _, maybe_ic = next_pointers[jcond_ic]
+            if maybe_ic != None:
+                return maybe_ic
+        return None
+
+    while ic < INSTRUCTIONS_NUM or jcond_stack:
+        # if we reached the last instruction of the program,
+        # but we still have some unexplored `jcond`s, we must explore
+        # these "forgotten" paths too!
+        if not (ic < INSTRUCTIONS_NUM) and jcond_stack:
+            ic = next_ic_in_jcond_stack(jcond_stack) or ic
+            if ic >= INSTRUCTIONS_NUM and not jcond_stack:
+                break
+
         # read instruction
         instr = ast[ic]
         prev_ic = ic
@@ -97,16 +113,29 @@ def remove_unreachable_code(ast):
                         next_pointers[prev_ic] = (_next_pos, -1)
                     else:
                         next_pointers[ic] = (_next_pos, -1)
-                    assoc[_next_pos] = instr.label_name
+                    if assoc[_next_pos] != None:
+                        assoc[_next_pos].append(instr.label_name)
+                    else:
+                        assoc[_next_pos] = [instr.label_name]
                     ic = _next_pos
                     last_was_jmp = True
                 else:
                     if type(instr) == p.JumpCondOp:
                         # S_jcond
                         jcond_stack.append(ic)
-                        _jcond_pos = labels_positions[instr.label_name]
-                        next_pointers[ic] = (ic+1, _jcond_pos)
-                        assoc[_jcond_pos] = instr.label_name
+                        try:
+                            _jcond_pos = labels_positions[instr.label_name]
+                            next_pointers[ic] = (ic+1, _jcond_pos)
+                        except KeyError:
+                            _jcond_pos = None
+                            ast[ic] = p.JumpCondOp("_hrm_unreachable", instr.condition)
+                            next_pointers[ic] = (ic+1, _jcond_pos)
+                            ic += 1
+                            continue
+                        if assoc[_jcond_pos] != None:
+                            assoc[_jcond_pos].append(instr.label_name)
+                        else:
+                            assoc[_jcond_pos] = [instr.label_name]
                         ic += 1
                     else:
                         # S_normal
@@ -115,15 +144,14 @@ def remove_unreachable_code(ast):
         else:
             if not jcond_stack:
                 break
-            # jcond_stack is not empty
-            jcond_ic = jcond_stack.pop()
-            _, ic = next_pointers[jcond_ic]
+            ic = next_ic_in_jcond_stack(jcond_stack) or ic
 
     minimized_ast = []
     for index, ast_item in enumerate(ast):
         if visited[index]:
             if assoc[index]:
-                minimized_ast.append(p.LabelStmt(assoc[index]))
+                for label_name in sorted(set(assoc[index])):
+                    minimized_ast.append(p.LabelStmt(label_name))
             minimized_ast.append(ast_item)
 
     return minimized_ast
@@ -139,19 +167,29 @@ def compress_jumps(ast):
             visited = [False for i in ast]
             _label = ast_item.label_name
             try:
+                # get the first position executable by `_label`
                 next_pos = labels_positions[_label]
             except KeyError:
                 jump_going_nowhere = True
 
-            while type(ast[next_pos]) == p.JumpOp and \
+            if jump_going_nowhere:
+                # even though the **conditional** jump redirects to a label
+                # that is _not_ associated to any instruction, removing conditional
+                # jumps alters the logic of the program
+                if type(ast_item) == p.JumpCondOp:
+                    compressed_ast.append(ast_item)
+                    continue
+
+            if not jump_going_nowhere:
+                while type(ast[next_pos]) == p.JumpOp and \
                     not visited[next_pos] and \
                     not jump_going_nowhere:
-                visited[next_pos] = True
-                _label = ast[next_pos].label_name
-                try:
-                    next_pos = labels_positions[_label]
-                except KeyError:
-                    jump_going_nowhere = True
+                    visited[next_pos] = True
+                    _label = ast[next_pos].label_name
+                    try:
+                        next_pos = labels_positions[_label]
+                    except KeyError:
+                        jump_going_nowhere = True
 
             if jump_going_nowhere:
                 pass

@@ -85,3 +85,93 @@ def test_still_reachable():
     ast = remove_unreachable_code(start_ast)
     assert ast == start_ast
 
+def test_dont_keep_only_last_label_on_instruction():
+    start_ast = [
+        parser.AssignOp(src='inbox', dst='emp'),
+        parser.JumpCondOp(label_name='_hrm_1', condition='jez'),
+        parser.OutboxOp(),
+        parser.JumpOp(label_name="_hrm_endif_1"),
+        parser.LabelStmt("_hrm_1"),
+        parser.LabelStmt("_hrm_endif_1"),
+        parser.AssignOp(src="inbox", dst="emp")
+    ]
+    ast = remove_unreachable_code(start_ast)
+    assert parser.LabelStmt("_hrm_endif_1") in ast
+    assert parser.LabelStmt("_hrm_1") in ast
+
+def test_no_duplicated_labels_on_same_point():
+    start_ast = [
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpOp("skip"),
+        parser.LabelStmt("comehere"),
+        parser.OutboxOp(),
+        parser.LabelStmt("skip"),
+        parser.JumpOp("comehere")
+    ]
+    ast = remove_unreachable_code(start_ast)
+
+    comehere_counter = sum(1 for ast_item in ast \
+                    if type(ast_item) == parser.LabelStmt \
+                        and ast_item.label_name == "comehere")
+    assert comehere_counter == 1
+
+    start_ast = [
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpOp("comehere"),
+        parser.LabelStmt("comehere"),
+        parser.OutboxOp(),
+        parser.LabelStmt("skip"),
+        parser.JumpOp("comehere")
+    ]
+    ast = remove_unreachable_code(start_ast)
+
+    comehere_counter = sum(1 for ast_item in ast \
+                    if type(ast_item) == parser.LabelStmt \
+                        and ast_item.label_name == "comehere")
+    assert comehere_counter == 1
+
+    start_ast = [
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp("comehere", "jez"),
+        parser.JumpOp("comehere"),
+        parser.LabelStmt("comehere"),
+        parser.OutboxOp(),
+        parser.LabelStmt("skip"),
+        parser.JumpOp("comehere")
+    ]
+    ast = remove_unreachable_code(start_ast)
+
+    comehere_counter = sum(1 for ast_item in ast \
+                    if type(ast_item) == parser.LabelStmt \
+                        and ast_item.label_name == "comehere")
+    assert comehere_counter == 1
+
+def test_unreachable_condjumps():
+    start_ast = [
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp("_hrm_1", "jez"),
+        parser.OutboxOp(),
+        parser.LabelStmt("_hrm_1"),
+        parser.LabelStmt("_hrm_endif_1")
+    ]
+    expected_ast = [
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp("_hrm_unreachable", "jez"),
+        parser.OutboxOp()
+    ]
+    ast = remove_unreachable_code(start_ast)
+    assert ast == expected_ast
+
+def test_no_operation_ignored_in_nonlooping_code():
+    start_ast = [
+        parser.JumpCondOp("_hrm_1", "jez"),
+            parser.IncrOp("a_field"),
+            parser.JumpOp("the_fence"),
+        parser.LabelStmt("_hrm_1"),
+            parser.IncrOp("b_field"),
+        parser.LabelStmt("the_fence"),
+        parser.IncrOp("c_field")
+    ]
+    ast = remove_unreachable_code(start_ast)
+    assert parser.IncrOp("b_field") in start_ast
+    assert parser.IncrOp("b_field") in ast
