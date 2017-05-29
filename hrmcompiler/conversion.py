@@ -107,8 +107,15 @@ def remove_unreachable_code(ast):
                     if type(instr) == p.JumpCondOp:
                         # S_jcond
                         jcond_stack.append(ic)
-                        _jcond_pos = labels_positions[instr.label_name]
-                        next_pointers[ic] = (ic+1, _jcond_pos)
+                        try:
+                            _jcond_pos = labels_positions[instr.label_name]
+                            next_pointers[ic] = (ic+1, _jcond_pos)
+                        except KeyError:
+                            _jcond_pos = None
+                            ast[ic] = p.JumpCondOp("_hrm_unreachable", instr.condition)
+                            next_pointers[ic] = (ic+1, _jcond_pos)
+                            ic += 1
+                            continue
                         if assoc[_jcond_pos] != None:
                             assoc[_jcond_pos].append(instr.label_name)
                         else:
@@ -121,9 +128,14 @@ def remove_unreachable_code(ast):
         else:
             if not jcond_stack:
                 break
-            # jcond_stack is not empty
-            jcond_ic = jcond_stack.pop()
-            _, ic = next_pointers[jcond_ic]
+            found = False
+            while not found and jcond_stack:
+                # jcond_stack is not empty
+                jcond_ic = jcond_stack.pop()
+                _, maybe_ic = next_pointers[jcond_ic]
+                if maybe_ic != None:
+                    ic = maybe_ic
+                    found = True
 
     minimized_ast = []
     for index, ast_item in enumerate(ast):

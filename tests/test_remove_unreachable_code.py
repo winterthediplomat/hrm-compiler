@@ -146,3 +146,18 @@ def test_no_duplicated_labels_on_same_point():
                         and ast_item.label_name == "comehere")
     assert comehere_counter == 1
 
+def test_unreachable_condjumps():
+    start_ast = [
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp("_hrm_1", "jez"),
+        parser.OutboxOp(),
+        parser.LabelStmt("_hrm_1"),
+        parser.LabelStmt("_hrm_endif_1")
+    ]
+    expected_ast = [
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp("_hrm_unreachable", "jez"),
+        parser.OutboxOp()
+    ]
+    ast = remove_unreachable_code(start_ast)
+    assert ast == expected_ast
