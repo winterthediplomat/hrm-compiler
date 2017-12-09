@@ -8,13 +8,22 @@ class Assembler(object):
         self.aliases = dict()
         self._gen_label_cnt = 1
 
+    def _convert_operand(self, operand):
+        if operand.startswith("["):
+            return {"Address": int(operand.replace("[", "").replace("]", ""))}
+        elif operand.isdigit():
+            return {"Cell": int(operand.replace("[", "").replace("]", ""))}
+        else:
+            return {"Label": operand}
+
+
     def _jsonize(self, command):
         try:
             operation, operand = command.split(" ")
-            return {"operation": operation, "operand": operand}
+            return {"operation": operation, "operand": self._convert_operand(operand)}
         except ValueError:
             if command.endswith(":"):
-                return {"operation": "label", "operand": command.replace(":", "")}
+                return {"operation": "label", "operand": {"Label": command.replace(":", "")}}
             else:
                 return {"operation": command}
 
