@@ -3,9 +3,11 @@
 # ################################
 import hrmcompiler.parser as p
 import hrmcompiler.assembler as a
+import hrmcompiler.jsonassembler as ja
 import hrmcompiler.semantic_check as checker
 import hrmcompiler.conversion as conversion
 from pprint import pprint
+import json
 
 def main(args):
     with open(args.fname) as src:
@@ -21,6 +23,11 @@ def main(args):
 
         assembler = a.Assembler()
         assembler.convert(result_ast)
+
+        with open(args.fname.replace(".hrm", ".json"), "w") as dst:
+            json_assembler = ja.Assembler()
+            json_assembler.convert(result_ast)
+            json.dump(json_assembler.code, dst)
 
         print(" ------------------------ ")
         print("\n".join(assembler.code))
