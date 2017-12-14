@@ -18,8 +18,10 @@ def main(args):
 
         result_ast = conversion.convert_ifnz_to_ifez(result_ast)
         result_ast = conversion.convert_iftojump(result_ast)
-        result_ast = conversion.compress_jumps(result_ast)
-        result_ast = conversion.remove_unreachable_code(result_ast)
+        if not args.no_jump_compression:
+            result_ast = conversion.compress_jumps(result_ast)
+        if not args.no_unreachable:
+            result_ast = conversion.remove_unreachable_code(result_ast)
 
         assembler = a.Assembler()
         assembler.convert(result_ast)
