@@ -187,9 +187,7 @@ def compress_jumps(ast):
                 except KeyError:
                     jump_going_nowhere = True
 
-            if jump_going_nowhere:
-                pass
-            elif type(ast_item) == p.JumpOp:
+            if type(ast_item) == p.JumpOp:
                 compressed_ast.append(p.JumpOp(_label))
             else:
                 compressed_ast.append(p.JumpCondOp(_label, ast_item.condition))

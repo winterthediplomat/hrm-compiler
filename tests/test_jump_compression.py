@@ -247,3 +247,31 @@ def test_dont_optimize_jumps_with_missing_label():
     ]
     ast = compress_jumps(start_ast)
     assert ast == expected_ast
+
+def test_dont_optimize_jumps_with_missing_label_in_chain():
+    start_ast = [
+            parser.LabelStmt("start"),
+            parser.AssignOp(src="inbox", dst="emp"),
+            parser.JumpOp(label_name="a"),
+            parser.OutboxOp(),
+            parser.JumpOp(label_name="start"),
+            parser.LabelStmt("a"),
+            parser.JumpOp(label_name="b"),
+            parser.LabelStmt("b"),
+            parser.JumpOp(label_name="misspelled_start"),
+            parser.LabelStmt("misspelled_start"),
+    ]
+    expected_ast = [
+            parser.LabelStmt("start"),
+            parser.AssignOp(src="inbox", dst="emp"),
+            parser.JumpOp(label_name="misspelled_start"),
+            parser.OutboxOp(),
+            parser.JumpOp(label_name="start"),
+            parser.LabelStmt("a"),
+            parser.JumpOp(label_name="misspelled_start"),
+            parser.LabelStmt("b"),
+            parser.JumpOp(label_name="misspelled_start"),
+            parser.LabelStmt("misspelled_start"),
+    ]
+    ast = compress_jumps(start_ast)
+    assert ast == expected_ast
