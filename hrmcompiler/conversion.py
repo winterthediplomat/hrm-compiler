@@ -173,12 +173,11 @@ def compress_jumps(ast):
                 jump_going_nowhere = True
 
             if jump_going_nowhere:
-                # even though the **conditional** jump redirects to a label
+                # even though a jump, either conditional or unconditional, redirects to a label
                 # that is _not_ associated to any instruction, removing conditional
                 # jumps alters the logic of the program
-                if type(ast_item) == p.JumpCondOp:
-                    compressed_ast.append(ast_item)
-                    continue
+                compressed_ast.append(ast_item)
+                continue
 
             if not jump_going_nowhere:
                 while type(ast[next_pos]) == p.JumpOp and \

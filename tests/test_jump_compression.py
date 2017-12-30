@@ -164,6 +164,7 @@ def test_jcond_lone_label():
         parser.AssignOp(src="inbox", dst="emp"),
         parser.JumpCondOp("start", "ez"),
             parser.JumpOp("start"),
+            parser.JumpOp("_generated_endif"),
         parser.LabelStmt("if"),
             parser.JumpOp("start"),
         parser.LabelStmt("_generated_endif")
@@ -226,3 +227,23 @@ def test_dont_optimize_conditional_jumps():
     ]
     ast = compress_jumps(start_ast)
     assert parser.JumpCondOp(label_name="_hrm_1", condition="jez") in ast
+
+def test_dont_optimize_jumps_with_missing_label():
+    start_ast = [
+            parser.LabelStmt("start"),
+            parser.AssignOp(src="inbox", dst="emp"),
+            parser.JumpOp(label_name="misspelled_start"),
+            parser.OutboxOp(),
+            parser.JumpOp(label_name="start"),
+            parser.LabelStmt("misspelled_start"),
+    ]
+    expected_ast = [
+            parser.LabelStmt("start"),
+            parser.AssignOp(src="inbox", dst="emp"),
+            parser.JumpOp(label_name="misspelled_start"),
+            parser.OutboxOp(),
+            parser.JumpOp(label_name="start"),
+            parser.LabelStmt("misspelled_start"),
+    ]
+    ast = compress_jumps(start_ast)
+    assert ast == expected_ast
