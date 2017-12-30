@@ -171,24 +171,21 @@ def compress_jumps(ast):
                 next_pos = labels_positions[_label]
             except KeyError:
                 jump_going_nowhere = True
-
-            if jump_going_nowhere:
                 # even though a jump, either conditional or unconditional, redirects to a label
                 # that is _not_ associated to any instruction, removing conditional
                 # jumps alters the logic of the program
                 compressed_ast.append(ast_item)
                 continue
 
-            if not jump_going_nowhere:
-                while type(ast[next_pos]) == p.JumpOp and \
-                    not visited[next_pos] and \
-                    not jump_going_nowhere:
-                    visited[next_pos] = True
-                    _label = ast[next_pos].label_name
-                    try:
-                        next_pos = labels_positions[_label]
-                    except KeyError:
-                        jump_going_nowhere = True
+            while type(ast[next_pos]) == p.JumpOp and \
+                not visited[next_pos] and \
+                not jump_going_nowhere:
+                visited[next_pos] = True
+                _label = ast[next_pos].label_name
+                try:
+                    next_pos = labels_positions[_label]
+                except KeyError:
+                    jump_going_nowhere = True
 
             if jump_going_nowhere:
                 pass
