@@ -193,11 +193,10 @@ def test_unreachable_jumps():
     ]
     expected_ast = [
         parser.AssignOp(src="inbox", dst="emp"),
-        # the indented part is needed in the test
-        # it would be optimized because of the previous
-        # 'jump compression' optimization
-        # but every jump here is reachable if the
-        # code is passed as in the test.
+        # the indented part is needed in this test.
+        # when run from `hrmc`, it'd be optimized
+        # because of the previous 'jump compression' optimization,
+        # but we are not using an optimized ast here.
              parser.JumpOp("label_a"),
              parser.LabelStmt("label_a"),
              parser.JumpOp("label_b"),
