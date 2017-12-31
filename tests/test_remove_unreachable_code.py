@@ -208,3 +208,27 @@ def test_unreachable_jumps():
     ]
     ast = remove_unreachable_code(start_ast)
     assert ast == expected_ast
+
+def test_unreachable_jump_to_lone_label_in_jcond_false_path():
+    start_ast = [
+        parser.LabelStmt("start"),
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp(condition="ez", label_name="isZero"),
+        parser.JumpOp("loneLabel"),
+        parser.LabelStmt("isZero"),
+        parser.OutboxOp(),
+        parser.JumpOp("start"),
+        parser.LabelStmt("loneLabel")
+    ]
+    expected_ast = [
+        parser.LabelStmt("start"),
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp(condition="ez", label_name="isZero"),
+        parser.JumpOp("_hrm_unreachable"),
+        parser.LabelStmt("isZero"),
+        parser.OutboxOp(),
+        parser.JumpOp("start"),
+        parser.LabelStmt("_hrm_unreachable")
+    ]
+    ast = remove_unreachable_code(start_ast)
+    assert ast == expected_ast

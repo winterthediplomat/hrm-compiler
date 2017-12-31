@@ -127,13 +127,8 @@ def remove_unreachable_code(ast):
                             next_pointers[prev_ic] = (_next_pos, -1)
                         else:
                             next_pointers[ic] = (_next_pos, -1)
-                        #if assoc[_next_pos] != None:
-                        #    assoc[_next_pos].append(instr.label_name)
-                        #else:
-                        #    assoc[_next_pos] = [instr.label_name]
                         ast[ic] = p.JumpOp("_hrm_unreachable")
                         hrm_unreachable_used = True
-                        # TODO(winter): create test case for ic=INSTRUCTIONS_NUM, jcond_stack not empty
                         ic = INSTRUCTIONS_NUM
                 else:
                     if type(instr) == p.JumpCondOp:
