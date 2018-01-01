@@ -1,0 +1,12 @@
+start:
+emp = inbox
+jmp a
+# when executed in hrm-interpreter,
+# the `outbox` should not be executed at all.
+outbox
+jmp start
+a:
+jmp b
+b:
+jmp misspelledStart
+misspelledStart:

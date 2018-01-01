@@ -1,0 +1,6 @@
+start:
+emp = inbox
+if ez then
+	outbox
+endif
+jmp start

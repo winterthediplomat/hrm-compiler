@@ -157,7 +157,8 @@ def test_unreachable_condjumps():
     expected_ast = [
         parser.AssignOp(src="inbox", dst="emp"),
         parser.JumpCondOp("_hrm_unreachable", "jez"),
-        parser.OutboxOp()
+        parser.OutboxOp(),
+        parser.LabelStmt("_hrm_unreachable")
     ]
     ast = remove_unreachable_code(start_ast)
     assert ast == expected_ast
@@ -175,3 +176,59 @@ def test_no_operation_ignored_in_nonlooping_code():
     ast = remove_unreachable_code(start_ast)
     assert parser.IncrOp("b_field") in start_ast
     assert parser.IncrOp("b_field") in ast
+
+def test_unreachable_jumps():
+    start_ast = [
+        parser.LabelStmt("start"),
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpOp("label_a"),
+        parser.LabelStmt("label_a"),
+        parser.JumpOp("label_b"),
+        parser.LabelStmt("label_b"),
+        parser.JumpOp("label_c"),
+        parser.LabelStmt("label_c"),
+        parser.JumpOp("label_z"),
+        parser.JumpOp("start"),
+        parser.LabelStmt("label_z")
+    ]
+    expected_ast = [
+        parser.AssignOp(src="inbox", dst="emp"),
+        # the indented part is needed in this test.
+        # when run from `hrmc`, it'd be optimized
+        # because of the previous 'jump compression' optimization,
+        # but we are not using an optimized ast here.
+             parser.JumpOp("label_a"),
+             parser.LabelStmt("label_a"),
+             parser.JumpOp("label_b"),
+             parser.LabelStmt("label_b"),
+             parser.JumpOp("label_c"),
+             parser.LabelStmt("label_c"),
+        parser.JumpOp("_hrm_unreachable"),
+        parser.LabelStmt("_hrm_unreachable")
+    ]
+    ast = remove_unreachable_code(start_ast)
+    assert ast == expected_ast
+
+def test_unreachable_jump_to_lone_label_in_jcond_false_path():
+    start_ast = [
+        parser.LabelStmt("start"),
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp(condition="ez", label_name="isZero"),
+        parser.JumpOp("loneLabel"),
+        parser.LabelStmt("isZero"),
+        parser.OutboxOp(),
+        parser.JumpOp("start"),
+        parser.LabelStmt("loneLabel")
+    ]
+    expected_ast = [
+        parser.LabelStmt("start"),
+        parser.AssignOp(src="inbox", dst="emp"),
+        parser.JumpCondOp(condition="ez", label_name="isZero"),
+        parser.JumpOp("_hrm_unreachable"),
+        parser.LabelStmt("isZero"),
+        parser.OutboxOp(),
+        parser.JumpOp("start"),
+        parser.LabelStmt("_hrm_unreachable")
+    ]
+    ast = remove_unreachable_code(start_ast)
+    assert ast == expected_ast
