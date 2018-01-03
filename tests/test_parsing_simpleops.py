@@ -6,13 +6,15 @@ import pytest
 
 #######################################################
 
-def test_inbox():
+def test_compat_inbox():
     code = "inbox"
     with StringIO(code) as f:
         ast = parser.parse_it(f)
 
         assert ast[0].src == "inbox"
         assert ast[0].dst == "emp"
+
+#######################################################
 
 def test_assign():
     code = "emp = inbox"
@@ -21,7 +23,6 @@ def test_assign():
 
         assert ast[0].src == "inbox"
         assert ast[0].dst == "emp"
-
 
 def test_assign_to_inbox():
     code = "inbox = emp"
@@ -154,6 +155,41 @@ def test_add_address_of_tile():
 
 def test_add_address_of_number():
     code = "emp += *3"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("3")
+
+def test_compat_add_aliased():
+    code = "add test"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+        assert ast[0].addend == "test"
+
+def test_compat_add_tilenumber():
+    code = "add 5"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+        assert ast[0].addend == "5"
+
+def test_compat_add_emp():
+    """ we cannot add to `emp` in the original syntax """
+    code = "add emp"
+    with StringIO(code) as f:
+        with pytest.raises(ValueError):
+            ast = parser.parse_it(f)
+
+def test_compat_add_address_of_tile():
+    code = "add *test"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("test")
+
+def test_compat_add_address_of_number():
+    code = "add *3"
     with StringIO(code) as f:
         ast = parser.parse_it(f)
 

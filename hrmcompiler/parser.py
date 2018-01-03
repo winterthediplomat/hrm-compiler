@@ -15,11 +15,12 @@ incr = Group(Suppress(Keyword("incr")) + (Word(alphanums) | addressof))
 decr = Group(Suppress(Keyword("decr")) + (Word(alphanums) | addressof))
 # compatibility layer
 compat_inbox = Keyword("inbox")
+compat_add = Group(Keyword("add") + (Word(alphanums) | addressof))
 
 program_line = Forward()
 _program_line = (
           assign | alias | add | sub | outbox | label | jump | condjump | incr | decr
-        | compat_inbox 
+        | compat_inbox | compat_add
         | Suppress(pythonStyleComment) )
 
 condition = (Keyword("ez") | Keyword("nz") | Keyword("neg"))
@@ -67,7 +68,8 @@ class BytecodeConverter(object):
                 "if": self.add_if,
                 "addressof": self.add_addressof,
                 # compatibility layer
-                "compat_inbox": self.add_inbox
+                "compat_inbox": self.add_inbox,
+                "compat_add": self.add_compat_addop
         }[tokensType](string_, line, tokens)
 
     def add_assign(self, string_, line, tokens):
@@ -132,6 +134,13 @@ class BytecodeConverter(object):
     def add_inbox(self, string_, line, tokens):
         return AssignOp(src="inbox", dst="emp")
 
+    def add_compat_addop(self, string_, line, tokens):
+        addend = tokens[1]
+        if addend == "emp":
+            raise ValueError("`emp` is not a valid tile identifier. syntax: `add <tile number|alias name|address to tile or alias>`")
+
+        return AddOp(addend)
+
 def parse_it(fileObj):
     bcc = BytecodeConverter()
 
@@ -149,5 +158,6 @@ def parse_it(fileObj):
     if_block.setParseAction(lambda s, line, tokens: bcc.add_tokenized("if", (s, line, tokens[0])))
     # compatibility layer
     compat_inbox.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_inbox", (s, line, tokens[0])))
+    compat_add.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_add", (s, line, tokens[0])))
 
     return program.parseFile(fileObj, parseAll=True)
