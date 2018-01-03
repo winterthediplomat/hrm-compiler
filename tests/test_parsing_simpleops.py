@@ -6,6 +6,14 @@ import pytest
 
 #######################################################
 
+def test_inbox():
+    code = "inbox"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+        assert ast[0].src == "inbox"
+        assert ast[0].dst == "emp"
+
 def test_assign():
     code = "emp = inbox"
     with StringIO(code) as f:

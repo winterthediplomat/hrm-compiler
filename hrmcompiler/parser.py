@@ -13,10 +13,14 @@ jump = Group(Keyword("jmp") + Word(alphanums))
 condjump = Group((Keyword("jez")|Keyword("jneg")) + Word(alphanums))
 incr = Group(Suppress(Keyword("incr")) + (Word(alphanums) | addressof))
 decr = Group(Suppress(Keyword("decr")) + (Word(alphanums) | addressof))
+# compatibility layer
+compat_inbox = Keyword("inbox")
 
 program_line = Forward()
-_program_line = (assign | alias | add | sub | outbox | label | jump | condjump
-                        | Suppress(pythonStyleComment) | incr | decr)
+_program_line = (
+          assign | alias | add | sub | outbox | label | jump | condjump | incr | decr
+        | compat_inbox 
+        | Suppress(pythonStyleComment) )
 
 condition = (Keyword("ez") | Keyword("nz") | Keyword("neg"))
 if_block = Group(Suppress(Keyword("if")) + condition + Suppress(Keyword("then"))
@@ -61,7 +65,9 @@ class BytecodeConverter(object):
                 "incr": self.add_incr,
                 "decr": self.add_decr,
                 "if": self.add_if,
-                "addressof": self.add_addressof
+                "addressof": self.add_addressof,
+                # compatibility layer
+                "compat_inbox": self.add_inbox
         }[tokensType](string_, line, tokens)
 
     def add_assign(self, string_, line, tokens):
@@ -121,6 +127,11 @@ class BytecodeConverter(object):
     def add_addressof(self, string_, line, tokens):
         return AddressOf(tokens[0])
 
+    # compatibility layer
+
+    def add_inbox(self, string_, line, tokens):
+        return AssignOp(src="inbox", dst="emp")
+
 def parse_it(fileObj):
     bcc = BytecodeConverter()
 
@@ -136,5 +147,7 @@ def parse_it(fileObj):
     incr.setParseAction(lambda s, line, tokens: bcc.add_tokenized("incr", (s, line, tokens[0])))
     decr.setParseAction(lambda s, line, tokens: bcc.add_tokenized("decr", (s, line, tokens[0])))
     if_block.setParseAction(lambda s, line, tokens: bcc.add_tokenized("if", (s, line, tokens[0])))
+    # compatibility layer
+    compat_inbox.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_inbox", (s, line, tokens[0])))
 
     return program.parseFile(fileObj, parseAll=True)
