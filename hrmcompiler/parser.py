@@ -2,7 +2,7 @@ from pyparsing import Word, alphanums, nums, ZeroOrMore, Group, Keyword, pythonS
 from pyparsing import Forward
 from collections import namedtuple
 
-addressof = Suppress("*") + Group(Word(alphanums))
+addressof = (Suppress("*") + Group(Word(alphanums))) | (Suppress("[") + Group(Word(alphanums)) + Suppress("]"))
 assign = Group((Word(alphanums) | addressof) + "=" + (Word(alphanums) | addressof))
 alias = Group(Keyword("alias") + Word(nums) + Word(alphanums))
 add = Group(Word("emp") + "+=" + (Word(alphanums) | addressof))

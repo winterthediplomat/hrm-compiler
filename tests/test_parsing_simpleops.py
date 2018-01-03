@@ -3,7 +3,6 @@ from io import StringIO
 import pyparsing
 import pytest
 
-
 #######################################################
 
 def test_compat_inbox():
@@ -160,6 +159,13 @@ def test_add_address_of_number():
 
     assert ast[0].addend == parser.AddressOf("3")
 
+def test_add_oldaddress_of_number():
+    code = "emp += [3]"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("3")
+
 def test_compat_add_aliased():
     code = "add test"
     with StringIO(code) as f:
@@ -183,6 +189,13 @@ def test_compat_add_emp():
 
 def test_compat_add_address_of_tile():
     code = "add *test"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("test")
+
+def test_compat_add_oldaddress_of_tile():
+    code = "add [test]"
     with StringIO(code) as f:
         ast = parser.parse_it(f)
 
