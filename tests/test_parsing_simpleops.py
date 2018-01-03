@@ -225,6 +225,40 @@ def test_sub_address_of_number():
 
     assert ast[0].subtraend == parser.AddressOf("5")
 
+def test_compat_sub():
+    code = "sub test"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == "test"
+
+def test_compat_sub_tile_number():
+    code = "sub 5"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == "5"
+
+def test_compat_sub_address_of_tile():
+    code = "sub *tile"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == parser.AddressOf("tile")
+
+def test_compat_sub_address_of_number():
+    code = "sub *5"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == parser.AddressOf("5")
+
+def test_compat_sub_emp():
+    code = "sub emp"
+    with StringIO(code) as f:
+        with pytest.raises(ValueError):
+            ast = parser.parse_it(f)
+
 #######################################################
 
 def test_incr_withlabel():
