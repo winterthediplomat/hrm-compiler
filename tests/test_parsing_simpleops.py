@@ -371,3 +371,90 @@ def test_compat_decr_withnumber():
     assert type(ast[0]) == parser.DecrOp
     assert ast[0].label_name == "0"
 
+##########################################################
+
+def test_compat_copyfrom_tilenumber():
+    code = "copyfrom 0"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "0"
+    assert ast[0].dst == "emp"
+
+def test_compat_copyfrom_aliased():
+    code = "copyfrom aliased"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "aliased"
+    assert ast[0].dst == "emp"
+
+def test_compat_copyfrom_emp():
+    code = "copyfrom emp"
+    with StringIO(code) as f:
+        with pytest.raises(ValueError):
+            parser.parse_it(f)
+
+def test_compat_copyfrom_addressof_tilenumber():
+    code = "copyfrom [0]"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == parser.AddressOf("0")
+    assert ast[0].dst == "emp"
+
+def test_compat_copyfrom_addressof_aliased():
+    code = "copyfrom *aliased"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == parser.AddressOf("aliased")
+    assert ast[0].dst == "emp"
+
+##########################################################
+
+def test_compat_copyto_tilenumber():
+    code = "copyto 0"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "emp"
+    assert ast[0].dst == "0"
+
+def test_compat_copyto_aliased():
+    code = "copyto aliased"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "emp"
+    assert ast[0].dst == "aliased"
+
+def test_compat_copyto_emp():
+    code = "copyto emp"
+    with StringIO(code) as f:
+        with pytest.raises(ValueError):
+            parser.parse_it(f)
+
+def test_compat_copyto_addressof_tilenumber():
+    code = "copyto [0]"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "emp"
+    assert ast[0].dst == parser.AddressOf("0")
+
+def test_compat_copyto_addressof_aliased():
+    code = "copyto *aliased"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "emp"
+    assert ast[0].dst == parser.AddressOf("aliased")

@@ -17,11 +17,13 @@ decr = Group(Suppress(Keyword("decr") | Keyword("bump-")) + (Word(alphanums) | a
 compat_inbox = Keyword("inbox")
 compat_add = Group(Keyword("add") + (Word(alphanums) | addressof))
 compat_sub = Group(Keyword("sub") + (Word(alphanums) | addressof))
+compat_copyfrom = Group(Keyword("copyfrom") + (Word(alphanums) | addressof))
+compat_copyto = Group(Keyword("copyto") + (Word(alphanums) | addressof))
 
 program_line = Forward()
 _program_line = (
           assign | alias | add | sub | outbox | label | jump | condjump | incr | decr
-        | compat_inbox | compat_add | compat_sub
+        | compat_inbox | compat_add | compat_sub | compat_copyfrom | compat_copyto
         | Suppress(pythonStyleComment) )
 
 condition = (Keyword("ez") | Keyword("nz") | Keyword("neg"))
@@ -71,7 +73,9 @@ class BytecodeConverter(object):
                 # compatibility layer
                 "compat_inbox": self.add_inbox,
                 "compat_add": self.add_compat_addop,
-                "compat_sub": self.add_compat_subop
+                "compat_sub": self.add_compat_subop,
+                "compat_copyfrom": self.add_compat_copyfromop,
+                "compat_copyto": self.add_compat_copytoop,
         }[tokensType](string_, line, tokens)
 
     def add_assign(self, string_, line, tokens):
@@ -150,6 +154,20 @@ class BytecodeConverter(object):
 
         return SubOp(subtraend)
 
+    def add_compat_copyfromop(self, string_, line, tokens):
+        from_ = tokens[1]
+        if from_ == "emp":
+            raise ValueError("`emp` is not a valid tile identifier. syntax: `copyfrom <tile number|alias name|address to tile or alias>`")
+
+        return AssignOp(src=from_, dst="emp")
+
+    def add_compat_copytoop(self, string_, line, tokens):
+        to_ = tokens[1]
+        if to_ == "emp":
+            raise ValueError("`emp` is not a valid tile identifier. syntax: `copyto <tile number|alias name|address to tile or alias>`")
+
+        return AssignOp(src="emp", dst=to_)
+
 
 def parse_it(fileObj):
     bcc = BytecodeConverter()
@@ -170,5 +188,7 @@ def parse_it(fileObj):
     compat_inbox.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_inbox", (s, line, tokens[0])))
     compat_add.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_add", (s, line, tokens[0])))
     compat_sub.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_sub", (s, line, tokens[0])))
+    compat_copyfrom.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_copyfrom", (s, line, tokens[0])))
+    compat_copyto.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_copyto", (s, line, tokens[0])))
 
     return program.parseFile(fileObj, parseAll=True)
