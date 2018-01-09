@@ -2,7 +2,7 @@ from pyparsing import Word, alphanums, nums, ZeroOrMore, Group, Keyword, pythonS
 from pyparsing import Forward
 from collections import namedtuple
 
-addressof = Suppress("*") + Group(Word(alphanums))
+addressof = (Suppress("*") + Group(Word(alphanums))) | (Suppress("[") + Group(Word(alphanums)) + Suppress("]"))
 assign = Group((Word(alphanums) | addressof) + "=" + (Word(alphanums) | addressof))
 alias = Group(Keyword("alias") + Word(nums) + Word(alphanums))
 add = Group(Word("emp") + "+=" + (Word(alphanums) | addressof))
@@ -11,12 +11,20 @@ outbox = Keyword("outbox")
 label = Group(Word(alphanums) + ":")
 jump = Group(Keyword("jmp") + Word(alphanums))
 condjump = Group((Keyword("jez")|Keyword("jneg")) + Word(alphanums))
-incr = Group(Suppress(Keyword("incr")) + (Word(alphanums) | addressof))
-decr = Group(Suppress(Keyword("decr")) + (Word(alphanums) | addressof))
+incr = Group(Suppress(Keyword("incr") | Keyword("bump+")) + (Word(alphanums) | addressof))
+decr = Group(Suppress(Keyword("decr") | Keyword("bump-")) + (Word(alphanums) | addressof))
+# compatibility layer
+compat_inbox = Keyword("inbox")
+compat_add = Group(Keyword("add") + (Word(alphanums) | addressof))
+compat_sub = Group(Keyword("sub") + (Word(alphanums) | addressof))
+compat_copyfrom = Group(Keyword("copyfrom") + (Word(alphanums) | addressof))
+compat_copyto = Group(Keyword("copyto") + (Word(alphanums) | addressof))
 
 program_line = Forward()
-_program_line = (assign | alias | add | sub | outbox | label | jump | condjump
-                        | Suppress(pythonStyleComment) | incr | decr)
+_program_line = (
+          assign | alias | add | sub | outbox | label | jump | condjump | incr | decr
+        | compat_inbox | compat_add | compat_sub | compat_copyfrom | compat_copyto
+        | Suppress(pythonStyleComment) )
 
 condition = (Keyword("ez") | Keyword("nz") | Keyword("neg"))
 if_block = Group(Suppress(Keyword("if")) + condition + Suppress(Keyword("then"))
@@ -61,7 +69,13 @@ class BytecodeConverter(object):
                 "incr": self.add_incr,
                 "decr": self.add_decr,
                 "if": self.add_if,
-                "addressof": self.add_addressof
+                "addressof": self.add_addressof,
+                # compatibility layer
+                "compat_inbox": self.add_inbox,
+                "compat_add": self.add_compat_addop,
+                "compat_sub": self.add_compat_subop,
+                "compat_copyfrom": self.add_compat_copyfromop,
+                "compat_copyto": self.add_compat_copytoop,
         }[tokensType](string_, line, tokens)
 
     def add_assign(self, string_, line, tokens):
@@ -121,6 +135,40 @@ class BytecodeConverter(object):
     def add_addressof(self, string_, line, tokens):
         return AddressOf(tokens[0])
 
+    # compatibility layer
+
+    def add_inbox(self, string_, line, tokens):
+        return AssignOp(src="inbox", dst="emp")
+
+    def add_compat_addop(self, string_, line, tokens):
+        addend = tokens[1]
+        if addend == "emp":
+            raise ValueError("`emp` is not a valid tile identifier. syntax: `add <tile number|alias name|address to tile or alias>`")
+
+        return AddOp(addend)
+
+    def add_compat_subop(self, string_, line, tokens):
+        subtraend = tokens[1]
+        if subtraend == "emp":
+            raise ValueError("`emp` is not a valid tile identifier. syntax: `add <tile number|alias name|address to tile or alias>`")
+
+        return SubOp(subtraend)
+
+    def add_compat_copyfromop(self, string_, line, tokens):
+        from_ = tokens[1]
+        if from_ == "emp":
+            raise ValueError("`emp` is not a valid tile identifier. syntax: `copyfrom <tile number|alias name|address to tile or alias>`")
+
+        return AssignOp(src=from_, dst="emp")
+
+    def add_compat_copytoop(self, string_, line, tokens):
+        to_ = tokens[1]
+        if to_ == "emp":
+            raise ValueError("`emp` is not a valid tile identifier. syntax: `copyto <tile number|alias name|address to tile or alias>`")
+
+        return AssignOp(src="emp", dst=to_)
+
+
 def parse_it(fileObj):
     bcc = BytecodeConverter()
 
@@ -136,5 +184,11 @@ def parse_it(fileObj):
     incr.setParseAction(lambda s, line, tokens: bcc.add_tokenized("incr", (s, line, tokens[0])))
     decr.setParseAction(lambda s, line, tokens: bcc.add_tokenized("decr", (s, line, tokens[0])))
     if_block.setParseAction(lambda s, line, tokens: bcc.add_tokenized("if", (s, line, tokens[0])))
+    # compatibility layer
+    compat_inbox.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_inbox", (s, line, tokens[0])))
+    compat_add.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_add", (s, line, tokens[0])))
+    compat_sub.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_sub", (s, line, tokens[0])))
+    compat_copyfrom.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_copyfrom", (s, line, tokens[0])))
+    compat_copyto.setParseAction(lambda s, line, tokens: bcc.add_tokenized("compat_copyto", (s, line, tokens[0])))
 
     return program.parseFile(fileObj, parseAll=True)

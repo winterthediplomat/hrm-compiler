@@ -1,0 +1,32 @@
+
+# alias the floor tiles
+alias 0 val1
+alias 1 val2
+
+# save some operations
+jmp start
+
+# if 2 values in a row from `inbox`
+# are equal, then copy it to the outbox
+writeit:
+#emp = val1
+copyfrom val1
+outbox
+
+start:
+# copy the first value
+# to the `val1` floor
+#emp = inbox
+inbox
+#val1 = emp
+copyto val1
+
+# read the second value
+# and subtract the old value from it
+#emp = inbox
+inbox
+#emp -= val1
+sub val1
+
+jez writeit
+jmp start

@@ -3,6 +3,15 @@ from io import StringIO
 import pyparsing
 import pytest
 
+#######################################################
+
+def test_compat_inbox():
+    code = "inbox"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+        assert ast[0].src == "inbox"
+        assert ast[0].dst == "emp"
 
 #######################################################
 
@@ -13,7 +22,6 @@ def test_assign():
 
         assert ast[0].src == "inbox"
         assert ast[0].dst == "emp"
-
 
 def test_assign_to_inbox():
     code = "inbox = emp"
@@ -151,6 +159,55 @@ def test_add_address_of_number():
 
     assert ast[0].addend == parser.AddressOf("3")
 
+def test_add_oldaddress_of_number():
+    code = "emp += [3]"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("3")
+
+def test_compat_add_aliased():
+    code = "add test"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+        assert ast[0].addend == "test"
+
+def test_compat_add_tilenumber():
+    code = "add 5"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+        assert ast[0].addend == "5"
+
+def test_compat_add_emp():
+    """ we cannot add to `emp` in the original syntax """
+    code = "add emp"
+    with StringIO(code) as f:
+        with pytest.raises(ValueError):
+            ast = parser.parse_it(f)
+
+def test_compat_add_address_of_tile():
+    code = "add *test"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("test")
+
+def test_compat_add_oldaddress_of_tile():
+    code = "add [test]"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("test")
+
+def test_compat_add_address_of_number():
+    code = "add *3"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].addend == parser.AddressOf("3")
+
 #######################################################
 
 def test_sub():
@@ -180,6 +237,40 @@ def test_sub_address_of_number():
         ast = parser.parse_it(f)
 
     assert ast[0].subtraend == parser.AddressOf("5")
+
+def test_compat_sub():
+    code = "sub test"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == "test"
+
+def test_compat_sub_tile_number():
+    code = "sub 5"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == "5"
+
+def test_compat_sub_address_of_tile():
+    code = "sub *tile"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == parser.AddressOf("tile")
+
+def test_compat_sub_address_of_number():
+    code = "sub *5"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert ast[0].subtraend == parser.AddressOf("5")
+
+def test_compat_sub_emp():
+    code = "sub emp"
+    with StringIO(code) as f:
+        with pytest.raises(ValueError):
+            ast = parser.parse_it(f)
 
 #######################################################
 
@@ -215,6 +306,23 @@ def test_incr_withnumber_address():
     assert type(ast[0]) == parser.IncrOp
     assert ast[0].label_name == parser.AddressOf("4")
 
+def test_compat_incr_withlabel():
+    code = "bump+ mylabel"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.IncrOp
+    assert ast[0].label_name == "mylabel"
+
+def test_incr_withnumber():
+    code = "bump+ 0"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.IncrOp
+    assert ast[0].label_name == "0"
+
+
 def test_decr_withlabel():
     code = "decr mylabel"
     with StringIO(code) as f:
@@ -247,3 +355,106 @@ def test_decr_withnumber_address():
     assert type(ast[0]) == parser.DecrOp
     assert ast[0].label_name == parser.AddressOf("4")
 
+def test_compat_decr_withlabel():
+    code = "bump- mylabel"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.DecrOp
+    assert ast[0].label_name == "mylabel"
+
+def test_compat_decr_withnumber():
+    code = "bump- 0"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.DecrOp
+    assert ast[0].label_name == "0"
+
+##########################################################
+
+def test_compat_copyfrom_tilenumber():
+    code = "copyfrom 0"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "0"
+    assert ast[0].dst == "emp"
+
+def test_compat_copyfrom_aliased():
+    code = "copyfrom aliased"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "aliased"
+    assert ast[0].dst == "emp"
+
+def test_compat_copyfrom_emp():
+    code = "copyfrom emp"
+    with StringIO(code) as f:
+        with pytest.raises(ValueError):
+            parser.parse_it(f)
+
+def test_compat_copyfrom_addressof_tilenumber():
+    code = "copyfrom [0]"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == parser.AddressOf("0")
+    assert ast[0].dst == "emp"
+
+def test_compat_copyfrom_addressof_aliased():
+    code = "copyfrom *aliased"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == parser.AddressOf("aliased")
+    assert ast[0].dst == "emp"
+
+##########################################################
+
+def test_compat_copyto_tilenumber():
+    code = "copyto 0"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "emp"
+    assert ast[0].dst == "0"
+
+def test_compat_copyto_aliased():
+    code = "copyto aliased"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "emp"
+    assert ast[0].dst == "aliased"
+
+def test_compat_copyto_emp():
+    code = "copyto emp"
+    with StringIO(code) as f:
+        with pytest.raises(ValueError):
+            parser.parse_it(f)
+
+def test_compat_copyto_addressof_tilenumber():
+    code = "copyto [0]"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "emp"
+    assert ast[0].dst == parser.AddressOf("0")
+
+def test_compat_copyto_addressof_aliased():
+    code = "copyto *aliased"
+    with StringIO(code) as f:
+        ast = parser.parse_it(f)
+
+    assert type(ast[0]) == parser.AssignOp
+    assert ast[0].src == "emp"
+    assert ast[0].dst == parser.AddressOf("aliased")
