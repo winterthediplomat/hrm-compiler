@@ -22,6 +22,8 @@ def main(args):
             result_ast = conversion.compress_jumps(result_ast)
         if not args.no_unreachable:
             result_ast = conversion.remove_unreachable_code(result_ast)
+        if not args.no_jmp_then_label:
+            result_ast = conversion.fix_jmp_then_label(result_ast)
 
         assembler = a.Assembler()
         assembler.convert(result_ast)

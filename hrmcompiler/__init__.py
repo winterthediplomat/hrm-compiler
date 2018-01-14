@@ -10,5 +10,8 @@ def main():
     parser.add_argument("--no-unreachable",
             action="store_true", default=False,
             help="disable unreachable code optimization")
+    parser.add_argument("--no-jmp-then-label",
+            action="store_true", default=False,
+            help="disable an optimization to remove jumps followed by the label referenced from the jump")
 
     _main(parser.parse_args())
