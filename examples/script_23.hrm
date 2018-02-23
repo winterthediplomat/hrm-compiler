@@ -7,6 +7,8 @@
 
 alias 0 currentmin
 
+jmp newserie
+
 outboxmin:
 emp = currentmin
 outbox
