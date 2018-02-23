@@ -13,6 +13,7 @@ def run_compiler(src_path, second_round=False):
     options = ["hrmc", src_path]
     if second_round:
         options.append("--no-unreachable")
+    print("[run_compiler] running", " ".join(options))
     subprocess.check_call(options, stdout=subprocess.DEVNULL)
 
 def run_interpreter(target_json_path, input_path):
@@ -59,7 +60,7 @@ def main():
             move_to("../hrm_compiler")
             copy_statedump(statedump_path, "orig_dump.json")
             # run tests with a different version
-            run_compiler(full_path)
+            run_compiler(full_path, second_round=True)
             run_interpreter("../hrm_compiler/"+compiled_path, "../hrm_compiler/"+input_path)
             move_to("../hrm_compiler")
             copy_statedump(statedump_path, "change_dump.json")
@@ -67,5 +68,6 @@ def main():
             check_statedump_differences()
             # cleanup
             clear_build_run_artifacts(compiled_path, statedump_path)
+        break # stop at first level
 
 main()
