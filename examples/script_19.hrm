@@ -5,6 +5,7 @@
 
 alias 0 tmp
 
+start:
 emp = inbox
 tmp = emp
 
@@ -23,4 +24,4 @@ jmp nexttime
 
 readnext:
 outbox
-jmp nexttime
+jmp start

@@ -19,18 +19,29 @@ pip install -e .
 
 `hrmc <script>`
 
-## Run tests
-
-Use `pytest`, it will find all the tests.
-I don't have end-to-end tests (from source language to target language) though.
-
 ## Examples
 
 There is no formal doc about the accepted grammar (check _parser.py_),
 but you can find some examples in the `examples` folder.
 
-## Source code location
+## Development
 
-The version hosted on [github](https://github.com/alfateam123/hrm-compiler) is a mirror of the version hosted on
-the self-hosted version at [wintermade.it/code/winterthediplomat/HRM-compiler](https://wintermade.it/code/winterthediplomat/HRM-compiler).
+### Run tests
 
+To run the unit tests, execute `pytest`.
+
+
+### Run differential testing
+
+To check that a new optimization does not introduces bugs, it is possible to
+use [hrm-interpreter](https://github.com/alfateam123/hrm-interpreter)
+and a custom script to compile the examples with different flags and run the different
+builds.
+
+To be able to perform this kind of testing:
+
+1. install rust and cargo via rustup
+2. clone and build `hrm-interpreter` in the parent directory of this repository
+3. run `run_all_on_interpreter.py`
+
+If something is wrong, you should see an AssertionError.
