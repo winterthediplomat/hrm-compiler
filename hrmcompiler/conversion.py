@@ -1,6 +1,7 @@
 from hrmcompiler.parser import IfOp
 import hrmcompiler.parser as p
 from pprint import pprint
+import itertools as it
 
 def convert_ifnz_to_ifez(ast):
     new_ast = []
@@ -209,3 +210,21 @@ def compress_jumps(ast):
             compressed_ast.append(ast_item)
 
     return compressed_ast
+
+def fix_jmp_then_label(ast):
+    new_ast = []
+
+    skip_label = False
+    for (a_instr, b_instr) in it.zip_longest(ast, ast[1:]):
+        if type(a_instr) == p.JumpOp and type(b_instr) == p.LabelStmt:
+            if a_instr.label_name != b_instr.label_name:
+                new_ast.append(a_instr)
+                skip_label = False
+            else:
+                skip_label = True
+        elif skip_label:
+            skip_label = False
+        else:
+            new_ast.append(a_instr)
+
+    return new_ast

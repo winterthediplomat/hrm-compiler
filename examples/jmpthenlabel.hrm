@@ -1,0 +1,12 @@
+start:
+inbox
+if neg then
+    jmp start
+endif
+if ez then
+    jmp start
+else
+    0 = emp
+endif
+jmp start
+
