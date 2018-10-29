@@ -275,3 +275,13 @@ def test_dont_optimize_jumps_with_missing_label_in_chain():
     ]
     ast = compress_jumps(start_ast)
     assert ast == expected_ast
+
+def test_dont_optimize_jumps_2():
+    start_ast = [
+            parser.JumpOp(label_name="start"),
+            parser.LabelStmt("start"),
+            parser.AssignOp(src="inbox", dst="emp"),
+            parser.JumpOp("start")
+    ]
+    ast = compress_jumps(start_ast)
+    assert ast == start_ast
