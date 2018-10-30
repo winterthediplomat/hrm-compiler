@@ -3,13 +3,16 @@ import subprocess
 import os
 import shutil
 
+COMPILER_PATH = "../hrm-compiler"
+INTERPRETER_PATH = "../hrm-interpreter"
+
 def move_to(path):
     #options = ["cd", path]
     #subprocess.check_call(options)
     os.chdir(path)
 
 def run_compiler(src_path, second_round=False):
-    move_to("../hrm_compiler")
+    move_to(COMPILER_PATH)
     options = ["hrmc", src_path]
     if second_round:
         options.append("--no-unreachable")
@@ -17,7 +20,7 @@ def run_compiler(src_path, second_round=False):
     subprocess.check_call(options, stdout=subprocess.DEVNULL)
 
 def run_interpreter(target_json_path, input_path):
-    move_to("../hrm_interpreter")
+    move_to(INTERPRETER_PATH)
     options = ["cargo", "run", "--",
                "--code", target_json_path,
                "--input", input_path]
@@ -56,13 +59,13 @@ def main():
             statedump_path = compiled_path+"_state_dump.json"
             # run tests with a certain version
             run_compiler(full_path)
-            run_interpreter("../hrm_compiler/"+compiled_path, "../hrm_compiler/"+input_path)
-            move_to("../hrm_compiler")
+            run_interpreter(COMPILER_PATH+"/"+compiled_path, COMPILER_PATH+"/"+input_path)
+            move_to(COMPILER_PATH)
             copy_statedump(statedump_path, "orig_dump.json")
             # run tests with a different version
             run_compiler(full_path, second_round=True)
-            run_interpreter("../hrm_compiler/"+compiled_path, "../hrm_compiler/"+input_path)
-            move_to("../hrm_compiler")
+            run_interpreter(COMPILER_PATH+"/"+compiled_path, COMPILER_PATH+"/"+input_path)
+            move_to(COMPILER_PATH)
             copy_statedump(statedump_path, "change_dump.json")
             # check differences
             check_statedump_differences()
