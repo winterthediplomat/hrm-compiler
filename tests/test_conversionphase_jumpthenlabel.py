@@ -15,11 +15,11 @@ def test_convert_jmpthenlabel_check():
         p.JumpCondOp(condition="jneg", label_name="alreadySorted"),
             # pass
         #    p.JumpOp("_hrm_endif_1"),
-        #p.LabelStmt("_hrm_endif_1"),
+        # p.LabelStmt("_hrm_endif_1"),
         p.JumpCondOp(condition="jez", label_name="alreadySorted"),
             p.AssignOp(src="0", dst="emp")
         #    p.JumpOp("_hrm_unreachable"),
-        #p.LabelStmt("_hrm_unreachable")
+        # p.LabelStmt("_hrm_unreachable")
     ]
     result_ast = conversion.convert_ifnz_to_ifez(code)
     result_ast = conversion.convert_iftojump(result_ast)
@@ -36,3 +36,13 @@ def test_convert_jmpthenlabel_not_remove_everything():
 
     assert code == conversion.fix_jmp_then_label(code)
     assert code_ == conversion.fix_jmp_then_label(code_)
+
+def test_convert_jmpthenlabel_used_elsewhere():
+    start_ast = [
+            p.JumpOp(label_name="start"),
+            p.LabelStmt("start"),
+            p.AssignOp(src="inbox", dst="emp"),
+            p.JumpOp("start")
+    ]
+    ast = conversion.fix_jmp_then_label(start_ast)
+    assert ast == start_ast

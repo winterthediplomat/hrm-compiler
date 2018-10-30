@@ -211,20 +211,36 @@ def compress_jumps(ast):
 
     return compressed_ast
 
+from collections import Counter
+
 def fix_jmp_then_label(ast):
     new_ast = []
+    labels_positions, label_at_pos = labels_in_ast(ast)
+
+    lst = []
+    for ast_item in ast:
+        if type(ast_item) in [p.JumpOp, p.JumpCondOp]:
+            lst.append(ast_item.label_name)
+    references_counter = Counter(lst)
 
     skip_label = False
+    next_skip_label = False
     for (a_instr, b_instr) in it.zip_longest(ast, ast[1:]):
-        if type(a_instr) == p.JumpOp and type(b_instr) == p.LabelStmt:
-            if a_instr.label_name != b_instr.label_name:
-                new_ast.append(a_instr)
-                skip_label = False
+        is_jmp_then_label = type(a_instr) == p.JumpOp and type(b_instr) == p.LabelStmt
+        if is_jmp_then_label:
+            same_name = a_instr.label_name == b_instr.label_name
+            if same_name:
+                has_single_reference = references_counter[b_instr.label_name] == 1
+                if same_name and has_single_reference:
+                    next_skip_label = True
+                else:
+                    new_ast.append(a_instr)
             else:
-                skip_label = True
-        elif skip_label:
-            skip_label = False
-        else:
+                new_ast.append(a_instr)
+        elif not skip_label:
             new_ast.append(a_instr)
+
+        skip_label = next_skip_label
+        next_skip_label = False
 
     return new_ast
