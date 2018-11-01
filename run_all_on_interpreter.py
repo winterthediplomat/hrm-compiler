@@ -15,7 +15,7 @@ def run_compiler(src_path, second_round=False):
     move_to(COMPILER_PATH)
     options = ["hrmc", src_path]
     if second_round:
-        options.append("--no-unreachable")
+        options.append("--no-jmp-then-label")
     print("[run_compiler] running", " ".join(options))
     subprocess.check_call(options, stdout=subprocess.DEVNULL)
 

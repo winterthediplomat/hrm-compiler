@@ -23,7 +23,11 @@ def main(args):
         if not args.no_unreachable:
             result_ast = conversion.remove_unreachable_code(result_ast)
         if not args.no_jmp_then_label:
-            result_ast = conversion.fix_jmp_then_label(result_ast)
+            unchanged = False
+            while not unchanged:
+                new_ast = conversion.fix_jmp_then_label(result_ast)
+                unchanged = new_ast == result_ast
+                result_ast = new_ast
 
         assembler = a.Assembler()
         assembler.convert(result_ast)

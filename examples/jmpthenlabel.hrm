@@ -1,12 +1,33 @@
+alias 0 NUMSTORAGE
+alias 1 ONE
+
 start:
 inbox
+# skip if not > 1
 if neg then
     jmp start
 endif
 if ez then
     jmp start
 else
-    0 = emp
+    NUMSTORAGE = emp
 endif
+
+sub ONE
+if ez then
+    jmp output
+endif
+output:
+    outbox
+sub ONE
+if ez then
+    jmp output2
+else
+    add ONE
+endif
+
+output2:
+  outbox
+
 jmp start
 

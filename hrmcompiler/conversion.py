@@ -226,13 +226,17 @@ def fix_jmp_then_label(ast):
     skip_label = False
     next_skip_label = False
     for (a_instr, b_instr) in it.zip_longest(ast, ast[1:]):
-        is_jmp_then_label = type(a_instr) == p.JumpOp and type(b_instr) == p.LabelStmt
+        is_jmp_then_label = (type(a_instr) == p.JumpOp or type(a_instr) == p.JumpCondOp) and type(b_instr) == p.LabelStmt
         if is_jmp_then_label:
             same_name = a_instr.label_name == b_instr.label_name
             if same_name:
-                has_single_reference = references_counter[b_instr.label_name] == 1
-                if same_name and has_single_reference:
-                    next_skip_label = True
+                is_referenced_once = references_counter[b_instr.label_name] == 1
+                if same_name:
+                    if is_referenced_once:
+                        next_skip_label = True
+                    else:
+                        # write the label (don't skip), but don't write the jmp instruction
+                        pass
                 else:
                     new_ast.append(a_instr)
             else:

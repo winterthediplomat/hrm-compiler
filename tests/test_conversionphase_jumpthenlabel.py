@@ -30,6 +30,37 @@ def test_convert_jmpthenlabel_check():
 
     assert ast == expected_ast
 
+def test_convert_jmpthenlabel_conditionaljumps_leading_to_same_instr():
+    start_ast = [
+        p.JumpCondOp(condition="ez", label_name="output"),
+        p.LabelStmt("output"),
+        p.OutboxOp()
+    ]
+    expected_ast = [
+        p.OutboxOp()
+    ]
+    ast = conversion.fix_jmp_then_label(start_ast)
+    assert ast == expected_ast
+
+def test_convert_jmpthenlabel_conditionaljumps_multiple():
+    start_ast = [
+        p.JumpCondOp(condition="jneg", label_name="other"),
+        p.JumpCondOp(condition="jez", label_name="output"),
+        p.LabelStmt("output"),
+        p.OutboxOp(),
+        p.LabelStmt("other"),
+        p.AssignOp(src="inbox", dst="emp")
+    ]
+    expected_ast = [
+        p.JumpCondOp(condition="jneg", label_name="other"),
+        p.OutboxOp(),
+        p.LabelStmt("other"),
+        p.AssignOp(src="inbox", dst="emp")
+    ]
+    ast = conversion.fix_jmp_then_label(start_ast)
+
+    assert ast == expected_ast
+
 def test_convert_jmpthenlabel_not_remove_everything():
     code = [p.JumpOp("b"), p.LabelStmt("a")]
     code_ = [p.JumpOp("b"), p.LabelStmt("a"), p.OutboxOp()]
@@ -44,5 +75,10 @@ def test_convert_jmpthenlabel_used_elsewhere():
             p.AssignOp(src="inbox", dst="emp"),
             p.JumpOp("start")
     ]
+    expected_ast = [
+            p.LabelStmt("start"),
+            p.AssignOp(src="inbox", dst="emp"),
+            p.JumpOp("start")
+    ]
     ast = conversion.fix_jmp_then_label(start_ast)
-    assert ast == start_ast
+    assert ast == expected_ast
