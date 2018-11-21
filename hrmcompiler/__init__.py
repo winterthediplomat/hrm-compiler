@@ -1,4 +1,5 @@
 from .main import main as _main
+from .main import calculate_optimized_ast
 from argparse import ArgumentParser
 
 def main():

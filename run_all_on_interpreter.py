@@ -7,8 +7,6 @@ COMPILER_PATH = "../hrm-compiler"
 INTERPRETER_PATH = "../hrm-interpreter"
 
 def move_to(path):
-    #options = ["cd", path]
-    #subprocess.check_call(options)
     os.chdir(path)
 
 def run_compiler(src_path, second_round=False):
@@ -21,13 +19,15 @@ def run_compiler(src_path, second_round=False):
 
 def run_interpreter(target_json_path, input_path):
     move_to(INTERPRETER_PATH)
-    options = ["cargo", "run", "--",
+    options = ["cargo", "run", "--release", "--",
                "--code", target_json_path,
-               "--input", input_path]
+               "--input", input_path,
+               "--dump", "/dev/null"]
     subprocess.check_call(options, stdout=subprocess.DEVNULL)
 
 def copy_statedump(statedump_path, tmp_place):
-    shutil.copy(statedump_path, tmp_place)
+    if os.path.exists(statedump_path):
+        shutil.copy(statedump_path, tmp_place)
 
 def check_statedump_differences():
     orig_path = "orig_dump.json"
@@ -45,7 +45,8 @@ def check_statedump_differences():
 
 def clear_build_run_artifacts(compiled, statedump):
     os.remove(compiled)
-    os.remove(statedump)
+    if os.path.exists(statedump):
+        os.remove(statedump)
 
 def main():
     for path, _, files in os.walk("examples/"):
